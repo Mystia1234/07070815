@@ -462,7 +462,7 @@ function goBack(){
 }
 $$('.nav button').forEach(button=>button.addEventListener('click',()=>go(button.dataset.page)));
 $$('#page-activities .activity-tab').forEach(button=>button.addEventListener('click',()=>go('activities',button.dataset.activity)));
-$$$('.page').forEach(page=>{
+$('.page').forEach(page=>{
  if(page.id==='page-start'||page.id==='page-activities')return;
  const head=page.querySelector('.content-head');
  if(!head||page.querySelector('.page-backbar'))return;
