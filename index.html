@@ -636,8 +636,8 @@ function drawCrop(){
  ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();ctx.drawImage(cropImage,x,y,iw,ih);ctx.restore();
 }
 $('#cropZoom').addEventListener('input',e=>{cropScale=Number(e.target.value);drawCrop()});
-$('#cropStage').addEventListener('pointerdown',e=>{if(!cropImage)return;cropDragging=true;cropPointer={x:e.clientX-cropX,y:e.clientY-cropY};e.currentTarget.setPointerCapture(e.pointerId)});
-$('#cropStage').addEventListener('pointermove',e=>{if(!cropDragging||!cropPointer)return;cropX=e.clientX-cropPointer.x;cropY=e.clientY-cropPointer.y;drawCrop()});
+$('#cropStage').addEventListener('pointerdown',e=>{if(!cropImage)return;cropDragging=true;const rect=e.currentTarget.getBoundingClientRect(),factor=600/rect.width;cropPointer={x:e.clientX*factor-cropX,y:e.clientY*factor-cropY};e.currentTarget.setPointerCapture(e.pointerId)});
+$('#cropStage').addEventListener('pointermove',e=>{if(!cropDragging||!cropPointer)return;const rect=e.currentTarget.getBoundingClientRect(),factor=600/rect.width;cropX=e.clientX*factor-cropPointer.x;cropY=e.clientY*factor-cropPointer.y;drawCrop()});
 ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>$('#cropStage').addEventListener(ev,()=>{cropDragging=false;cropPointer=null}));
 $('#cropCancel').addEventListener('click',()=>{$('#cropModal').classList.remove('show');cropImage=null;cropTarget=null});
 $('#cropApply').addEventListener('click',()=>{if(!cropImage||!cropTarget)return;const c=$('#cropCanvas'),data=c.toDataURL('image/jpeg',.88);cropTarget(data);$('#cropModal').classList.remove('show');cropImage=null;cropTarget=null;toast('초상화 구도가 적용됐습니다. 프로필 저장을 눌러 주세요.')});
