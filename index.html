@@ -573,9 +573,17 @@ function applyLogin(account){
  applyProfilePermissions();
  const own=account.character;
  // 인증이 끝나면 로그인 레이어를 먼저 닫아 다음 화면을 가리지 않도록 한다.
- $('#loginScreen').style.display='none';
- if(lobbyState[own]?.ready){$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.add('show');renderLobby();if(lobbyState.gameStarted)enterGame();}
- else showProfileGate();
+ const loginLayer=$('#loginScreen'),profileLayer=$('#profileGate'),lobbyLayer=$('#lobbyScreen');
+ loginLayer.style.setProperty('display','none','important');
+ if(lobbyState[own]?.ready){
+  profileLayer.classList.remove('show');profileLayer.style.setProperty('display','none','important');
+  lobbyLayer.classList.add('show');lobbyLayer.style.setProperty('display','grid','important');
+  renderLobby();if(lobbyState.gameStarted)enterGame();
+ }else{
+  lobbyLayer.classList.remove('show');lobbyLayer.style.setProperty('display','none','important');
+  profileLayer.classList.add('show');profileLayer.style.setProperty('display','grid','important');
+  showProfileGate();
+ }
 }
 $('#loginForm').addEventListener('submit',async e=>{
  e.preventDefault();
