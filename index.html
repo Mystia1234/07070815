@@ -153,6 +153,23 @@ input,textarea,select,.field{background:#fff!important;border:2px solid #000!imp
 .dz-meter{background:#ddd!important;border:1px solid #000!important}.dz-meter i{background:#000!important}
 .dz-drawer{border:2px solid #000!important}.dz-drawer .activity-panel{display:none!important}.dz-drawer .activity-panel.dz-selected{display:block!important}
 .dz-bottom{background:#fff!important}
+
+/* 대화 중심 플레이 화면 */
+#dzGame{grid-template-columns:minmax(0,1fr) 235px!important}
+.dz-side{grid-column:2;grid-row:2}
+.dz-main{grid-column:1;grid-row:2}
+.dz-chat{border:2px solid #000;background:#fff;padding:10px;display:flex;flex-direction:column;gap:9px}
+.dz-chat-head{font-weight:800;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.dz-chat-head small{font-size:11px;font-weight:400}
+#dzChatLog{display:flex;flex-direction:column;gap:8px;max-height:230px;overflow:auto;padding:4px 0}
+.dz-chat-empty{font-size:13px;padding:12px 4px}
+.dz-chat-message{border:1px solid #000;padding:9px 10px;white-space:pre-wrap;line-height:1.65;font-size:13px}
+.dz-chat-message.ai{border:2px solid #000}
+.dz-chat-message b{display:block;margin-bottom:4px}
+#dzChatForm{display:flex;flex-direction:column;gap:7px}
+#dzChatInput{width:100%;min-height:76px;resize:vertical;padding:10px;font:inherit}
+#dzChatSend{min-height:46px;font-weight:800}
+@media(max-width:760px){#dzGame{grid-template-columns:1fr!important}.dz-main,.dz-side{grid-column:1;grid-row:auto}.dz-side{order:0}.dz-main{order:1}.dz-chat{order:2}.dz-survivors{grid-template-columns:1fr 1fr}.dz-bottom{order:3}}
 </style>
 </head>
 <body>
@@ -274,8 +291,8 @@ input,textarea,select,.field{background:#fff!important;border:2px solid #000!imp
 
 <div class="page" id="page-activities">
 <div id="dzGame"><div class="dz-top"><span><strong>DEAD ZONE</strong>　/　DAY 01</span><span id="dzClock">08:00　·　안전지대</span></div>
-<div class="dz-main"><section class="dz-scene"><div><div class="dz-kicker">CURRENT FIELD / 01</div><h2 id="dzPlaceTitle">안전지대</h2><p id="dzSceneText">낡은 건물 안은 고요하다. 먼지 쌓인 창문 너머로 텅 빈 도로가 보인다. 멀리서 금속을 긁는 소리가 들려온다.</p></div><div class="dz-scene-foot"><span>위험도　<span style="color:#df766b">UNKNOWN</span></span><span>탐색 가능 지역　10</span></div></section><section class="dz-feed"><div class="dz-kicker">FIELD LOG / 진행 기록</div><div id="dzFeedMount"></div></section></div>
-<aside class="dz-side"><div class="dz-survivors"><div class="dz-survivor"><b id="dzNameA">HO1</b>HP<div class="dz-meter"><i style="width:100%"></i></div><small>생존자 01</small></div><div class="dz-survivor"><b id="dzNameB">HO2</b>HP<div class="dz-meter"><i style="width:100%"></i></div><small>생존자 02</small></div></div><div class="dz-actions"><button data-dz-action="주변 관찰">🔎<br>탐색</button><button data-dz-action="물자 수색">▣<br>채집</button><button data-dz-action="은밀 이동">⇢<br>이동</button><button data-dz-action="문 열기">⚔<br>행동</button></div></aside>
+<div class="dz-main"><section class="dz-scene"><div><div class="dz-kicker">CURRENT FIELD / 01</div><h2 id="dzPlaceTitle">안전지대</h2><p id="dzSceneText">낡은 건물 안은 고요하다. 먼지 쌓인 창문 너머로 텅 빈 도로가 보인다. 멀리서 금속을 긁는 소리가 들려온다.</p></div><div class="dz-scene-foot"><span>위험도　<span style="color:#df766b">UNKNOWN</span></span><span>탐색 가능 지역　10</span></div></section><section class="dz-feed"><div class="dz-kicker">FIELD LOG / 진행 기록</div><div id="dzFeedMount"></div></section><section class="dz-chat"><div class="dz-chat-head">생존자 통신 <small id="dzChatStatus">AI KP 대기 중</small></div><div id="dzChatLog" aria-live="polite"><div class="dz-chat-empty">상황을 입력하고 보내기를 누르면 AI KP가 다음 장면을 진행합니다.</div></div><form id="dzChatForm"><textarea id="dzChatInput" rows="3" placeholder="구동현 또는 백재하의 대사와 행동을 입력하세요..." required></textarea><button id="dzChatSend" type="submit">보내기 ↗</button></form></section></div>
+<aside class="dz-side"><div class="dz-survivors"><div class="dz-survivor"><b id="dzNameA">구동현</b><strong>HP <span id="dzHpA">11 / 11</span></strong><div class="dz-meter"><i id="dzHpBarA" style="width:100%"></i></div><small>생존자 01</small></div><div class="dz-survivor"><b id="dzNameB">백재하</b><strong>HP <span id="dzHpB">11 / 11</span></strong><div class="dz-meter"><i id="dzHpBarB" style="width:100%"></i></div><small>생존자 02</small></div></div></aside>
 <nav class="dz-bottom"><button data-dz-open="map">지역</button><button data-dz-open="actions">행동</button><button data-dz-open="rp">통신</button><button data-dz-open="trpg">상태 / 판정</button><button data-dz-open="items">가방</button></nav>
 <section class="dz-drawer" id="dzDrawer"><div class="dz-drawer-head"><span id="dzDrawerTitle">FIELD MENU</span><button class="dz-drawer-close" type="button">닫기 ×</button></div><div id="dzDrawerContent"></div></section></div><div class="content-head"><div><div class="eyebrow">SURVIVAL CONSOLE</div><h2>생존 활동</h2></div><span class="tag">SESSION 01 · 통합 플레이</span></div><div class="activity-tabs" role="tablist" aria-label="생존 활동 기능"><button type="button" class="activity-tab active" data-activity="map">⌖ 지역 탐색</button><button type="button" class="activity-tab" data-activity="actions">⚑ 행동 / 이동</button><button type="button" class="activity-tab" data-activity="rp">✉ 역극 통신</button><button type="button" class="activity-tab" data-activity="trpg">🎲 주사위 / TRPG</button><button type="button" class="activity-tab" data-activity="items">▤ 소지품</button><button type="button" class="activity-tab" data-activity="save">▣ 저장 / 불러오기</button></div><div class="activity-panel" id="activity-map">
  <div class="content-head"><div><div class="eyebrow">주변 탐색</div><h2>주변 지역</h2></div><span class="tag">정보 미확인</span></div>
@@ -754,7 +771,7 @@ $('#saveAI').addEventListener('click',()=>{aiConfig={key:$('#aiKey').value.trim(
 function recentContext(){return trpgState.feed.slice(0,12).reverse().map(x=>`[${x.time}] ${x.title}: ${x.body}`).join('\n')||'아직 진행 기록이 없습니다.'}
 async function callAI(extra=''){
  aiConfig={key:$('#aiKey').value.trim(),model:$('#aiModel').value.trim()||'openai/gpt-4o-mini',auto:$('#aiAuto').checked};
- if(!aiConfig.key){toast('OpenRouter API 키를 입력해 주세요.');$('#aiStatus').textContent='API 키가 비어 있습니다.';return}
+ if(!aiConfig.key){toast('상태 / 판정 메뉴에서 OpenRouter API 키를 먼저 저장해 주세요.');$('#aiStatus').textContent='API 키가 비어 있습니다.';return null}
  localStorage.setItem(aiConfigKey,JSON.stringify(aiConfig));
  const button=$('#aiContinue');button.disabled=true;button.textContent='AI KP 진행 중…';$('#aiStatus').textContent='AI KP가 현재 상황을 정리하고 있습니다…';
  const stats=`A: ${JSON.stringify(trpgState.stats.a)} / B: ${JSON.stringify(trpgState.stats.b)}\n생존 상태 A: ${JSON.stringify(survival.a)}\n생존 상태 B: ${JSON.stringify(survival.b)}\n현재 위치: ${currentLocation} / 단서: ${clues.slice(0,8).map(c=>c.text).join(' | ')}`;
@@ -765,10 +782,16 @@ async function callAI(extra=''){
   const data=await res.json();if(!res.ok)throw new Error(data.error?.message||`OpenRouter 오류 ${res.status}`);
   const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error('AI 응답 내용이 비어 있습니다. 모델 ID를 확인해 주세요.');
   aiHistory.push({role:'user',content:user},{role:'assistant',content:answer});aiHistory=aiHistory.slice(-20);localStorage.setItem(aiHistoryKey,JSON.stringify(aiHistory));
-  pushFeed('AI KP · 장면 진행',answer,'OpenRouter · '+aiConfig.model);$('#aiStatus').textContent='AI KP 연결 성공 · 방금 장면을 기록했습니다.';$('#aiPrompt').value='';
- }catch(err){$('#aiStatus').textContent='연결 실패: '+err.message;toast('AI 연결에 실패했습니다. API 키와 모델을 확인해 주세요.')}finally{button.disabled=false;button.textContent='AI KP에게 진행 요청'}
+  pushFeed('AI KP · 장면 진행',answer,'OpenRouter · '+aiConfig.model);$('#aiStatus').textContent='AI KP 연결 성공 · 방금 장면을 기록했습니다.';$('#aiPrompt').value='';return answer;
+ }catch(err){$('#aiStatus').textContent='연결 실패: '+err.message;toast('AI 연결에 실패했습니다. API 키와 모델을 확인해 주세요.');return null}finally{button.disabled=false;button.textContent='AI KP에게 진행 요청'}
 }
 $('#aiContinue').addEventListener('click',()=>callAI($('#aiPrompt').value.trim()));
+// 메인 화면 통신창: 플레이어 메시지를 OpenRouter KP에 전달하고 장면 응답 표시
+const dzChatKey='dz2_field_chat';let dzChatHistory=JSON.parse(localStorage.getItem(dzChatKey)||'[]');
+function renderDzChat(){const box=$('#dzChatLog');if(!box)return;box.innerHTML='';if(!dzChatHistory.length){box.innerHTML='<div class="dz-chat-empty">상황을 입력하고 보내기를 누르면 AI KP가 다음 장면을 진행합니다.</div>';return}dzChatHistory.forEach(m=>{const el=document.createElement('div');el.className='dz-chat-message'+(m.ai?' ai':'');const who=document.createElement('b');who.textContent=m.ai?'AI KP':m.name;const body=document.createElement('div');body.textContent=m.text;el.append(who,body);box.appendChild(el)});box.scrollTop=box.scrollHeight}
+$('#dzChatForm').addEventListener('submit',async e=>{e.preventDefault();const input=$('#dzChatInput'),send=$('#dzChatSend'),text=input.value.trim();if(!text)return;const p=profiles[sender]||{};dzChatHistory.push({name:p.name||(sender==='a'?'구동현':'백재하'),text,ai:false});localStorage.setItem(dzChatKey,JSON.stringify(dzChatHistory));renderDzChat();input.value='';send.disabled=true;send.textContent='AI KP 응답 중…';$('#dzChatStatus').textContent='상황 생성 중';const answer=await callAI(text);if(answer){dzChatHistory.push({name:'AI KP',text:answer,ai:true});localStorage.setItem(dzChatKey,JSON.stringify(dzChatHistory));renderDzChat();$('#dzChatStatus').textContent='장면 진행 완료'}else{$('#dzChatStatus').textContent='응답 실패 · 설정 확인'}send.disabled=false;send.textContent='보내기 ↗'});
+renderDzChat();
+
 
 // ── COC풍 D100 생존 / 정신력 / 부상 하우스룰 ──
 const survivalKey='dz2_survival', clueKey='dz2_clues';
@@ -812,6 +835,6 @@ const threatNames=['일반 감염자','질주 감염자','군집 감염자','변
 
 function tick(){$('#clock').textContent=new Date().toLocaleTimeString('ko-KR',{hour12:false})}tick();setInterval(tick,1000);
 
-(()=>{const byId=id=>document.getElementById(id),drawer=byId('dzDrawer'),mount=byId('dzDrawerContent');const panels={map:byId('activity-map'),actions:byId('activity-actions'),rp:byId('activity-rp'),trpg:byId('activity-trpg'),items:byId('activity-items')};const labels={map:'지역 탐색 / AREA',actions:'행동 선택 / ACTION',rp:'생존자 통신 / COMMS',trpg:'상태 및 주사위 / STATUS',items:'소지품 / INVENTORY'};function openPanel(k){if(!panels[k])return;Object.entries(panels).forEach(([key,p])=>{if(p){if(p.parentElement!==mount)mount.appendChild(p);p.classList.toggle('dz-selected',key===k)}});byId('dzDrawerTitle').textContent=labels[k];drawer.classList.add('open')}document.querySelectorAll('[data-dz-open]').forEach(b=>b.addEventListener('click',()=>openPanel(b.dataset.dzOpen)));drawer.querySelector('.dz-drawer-close').addEventListener('click',()=>drawer.classList.remove('open'));const feed=byId('trpgFeed');if(feed)byId('dzFeedMount').appendChild(feed);function sync(){byId('dzNameA').textContent=profiles.a.name||'HO1';byId('dzNameB').textContent=profiles.b.name||'HO2';byId('dzPlaceTitle').textContent=currentLocation||'안전지대';byId('dzClock').textContent='DAY 01　·　'+(currentLocation||'안전지대')}sync();document.querySelectorAll('[data-dz-action]').forEach(b=>b.addEventListener('click',()=>{openPanel('actions');const phrase={'주변 관찰':'주변 관찰','물자 수색':'물자 수색','은밀 이동':'은밀 이동','문 열기':'문이나 장애물을 힘으로 연다'}[b.dataset.dzAction];const target=[...document.querySelectorAll('#activity-actions .action-shortcut')].find(x=>x.textContent.includes(phrase)||x.dataset.action.includes(phrase));if(target)target.click()}));document.addEventListener('click',e=>{const z=e.target.closest('.zone');if(!z)return;currentLocation=z.dataset.zone;localStorage.setItem('dz2_current_location',currentLocation);sync();byId('dzSceneText').textContent=currentLocation+'에 도착했다. 주변을 살피자. 어디선가 희미한 소음이 들린다.'})})();
+(()=>{const byId=id=>document.getElementById(id),drawer=byId('dzDrawer'),mount=byId('dzDrawerContent');const panels={map:byId('activity-map'),actions:byId('activity-actions'),rp:byId('activity-rp'),trpg:byId('activity-trpg'),items:byId('activity-items')};const labels={map:'지역 탐색 / AREA',actions:'행동 선택 / ACTION',rp:'생존자 통신 / COMMS',trpg:'상태 및 주사위 / STATUS',items:'소지품 / INVENTORY'};function openPanel(k){if(!panels[k])return;Object.entries(panels).forEach(([key,p])=>{if(p){if(p.parentElement!==mount)mount.appendChild(p);p.classList.toggle('dz-selected',key===k)}});byId('dzDrawerTitle').textContent=labels[k];drawer.classList.add('open')}document.querySelectorAll('[data-dz-open]').forEach(b=>b.addEventListener('click',()=>openPanel(b.dataset.dzOpen)));drawer.querySelector('.dz-drawer-close').addEventListener('click',()=>drawer.classList.remove('open'));const feed=byId('trpgFeed');if(feed)byId('dzFeedMount').appendChild(feed);function sync(){byId('dzNameA').textContent=profiles.a.name||'HO1';byId('dzNameB').textContent=profiles.b.name||'HO2';byId('dzPlaceTitle').textContent=currentLocation||'안전지대';byId('dzClock').textContent='DAY 01　·　'+(currentLocation||'안전지대')}sync();document.addEventListener('click',e=>{const z=e.target.closest('.zone');if(!z)return;currentLocation=z.dataset.zone;localStorage.setItem('dz2_current_location',currentLocation);sync();byId('dzSceneText').textContent=currentLocation+'에 도착했다. 주변을 살피자. 어디선가 희미한 소음이 들린다.'})})();
 </script>
 </body></html>
