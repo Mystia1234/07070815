@@ -80,11 +80,11 @@ body:not(.logged-in)>header,body:not(.logged-in)>main,body:not(.logged-in)>.toas
   <div class="login-kicker">SURVIVOR AUTHENTICATION · HO1 / HO2</div>
   <h1>DEAD <b>ZONE</b></h1>
   <p class="login-desc">생존자 기록망에 접속하려면<br>지정된 계정 정보로 로그인하세요.</p>
-  <label for="loginId">아이디</label><input class="field" id="loginId" autocomplete="username" placeholder="지정된 아이디" required>
+  <label for="loginId">아이디</label><input class="field" id="loginId" autocomplete="username" placeholder="HO11111 또는 HO22222" required>
   <label for="loginPassword">비밀번호</label><input class="field" id="loginPassword" type="password" autocomplete="current-password" placeholder="비밀번호" required>
   <button class="btn" type="submit">기록망 접속 →</button>
   <div class="login-error" id="loginError" role="alert"></div>
-  <div class="hint">등록된 계정: HO1 / HO2</div>
+  <div class="hint">계정 비밀번호는 Supabase에 등록한 비밀번호를 사용합니다.</div>
  </form>
 </div>
 
@@ -349,8 +349,10 @@ body:not(.logged-in)>header,body:not(.logged-in)>main,body:not(.logged-in)>.toas
 </section></div>
 <footer class="foot">데드 존 · 생존자 기록망 / 살아남았다면, 기록하라.</footer>
 </main><div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
 const keys=['dz2_profiles','dz2_messages','dz2_logs','dz2_items'];
 let profiles=JSON.parse(localStorage.getItem(keys[0])||'null')||{a:{name:'생존자 1',bio:'',img:''},b:{name:'생존자 2',bio:'',img:''}};
 ['a','b'].forEach(k=>{const fallback=k==='a'?'생존자 1':'생존자 2';if(profiles[k] && !profiles[k].saved && ((profiles[k].name&&profiles[k].name!==fallback)||profiles[k].bio||profiles[k].img))profiles[k].saved=true;});
@@ -358,7 +360,13 @@ let messages=JSON.parse(localStorage.getItem(keys[1])||'[]'),logs=JSON.parse(loc
 let sender='a';
 let currentLocation=localStorage.getItem('dz2_current_location')||'미확인 지역';
 let currentRole=null;
-const loginAccounts={HO11111:{password:'HO1PASS',role:'ho1',character:'a',label:'HO1'},HO22222:{password:'HO2PASS',role:'ho2',character:'b',label:'HO2'}};
+const SUPABASE_URL='https://jpwxodxuzfljoticxukw.supabase.co';
+const SUPABASE_KEY='sb_publishable_zWbMZSoHLzdLIA5paRcaag_78JE2Aoo';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const accountForRole=role=>({role,character:role==='ho1'?'a':'b',label:role.toUpperCase()});
+const emailForId=id=>id==='HO11111'?'ho1@deadzone.local':id==='HO22222'?'ho2@deadzone.local':null;
+let authUser=null;
+let cloudSyncBusy=false;
 const lobbyKey='dz2_lobby_state';
 let lobbyState=JSON.parse(localStorage.getItem(lobbyKey)||'null')||{a:{ready:false,joinedAt:null},b:{ready:false,joinedAt:null},gameStarted:false};
 lobbyState.a ||= {ready:false,joinedAt:null}; lobbyState.b ||= {ready:false,joinedAt:null}; lobbyState.gameStarted=!!lobbyState.gameStarted;
@@ -389,10 +397,10 @@ function applyLogin(account){
  if(lobbyState[own]?.ready){$('#loginScreen').style.display='none';$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.add('show');renderLobby();if(lobbyState.gameStarted)enterGame();}
  else showProfileGate();
 }
-$('#loginForm').addEventListener('submit',e=>{e.preventDefault();const id=$('#loginId').value.trim(),pw=$('#loginPassword').value;const account=loginAccounts[id];if(!account||account.password!==pw){$('#loginError').textContent='아이디 또는 비밀번호가 올바르지 않습니다.';return;}sessionStorage.setItem('dz_login_role',account.role);applyLogin(account);$('#loginError').textContent='';$('#loginPassword').value='';});
-function logout(){if(currentRole && !lobbyState.gameStarted){const k=myCharacter();lobbyState[k]={ready:false,joinedAt:null};persistLobby();}sessionStorage.removeItem('dz_login_role');document.body.classList.remove('logged-in');$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.remove('show');$('#loginScreen').style.display='grid';$('#loginId').value='';$('#loginPassword').value='';$('#loginError').textContent='';currentRole=null;}
+$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('#loginId').value.trim(),pw=$('#loginPassword').value,email=emailForId(id);if(!email){$('#loginError').textContent='아이디 또는 비밀번호가 올바르지 않습니다.';return;}const button=$('#loginForm button[type="submit"]');button.disabled=true;button.textContent='접속 확인 중…';try{const {data,error}=await sb.auth.signInWithPassword({email,password:pw});if(error)throw error;authUser=data.user;const role=email.startsWith('ho1@')?'ho1':'ho2';await loadCloudData();applyLogin(accountForRole(role));$('#loginError').textContent='';$('#loginPassword').value='';}catch(err){$('#loginError').textContent='로그인 실패: '+(err.message||'계정 정보를 확인해 주세요.');}finally{button.disabled=false;button.textContent='기록망 접속 →';}});
+async function logout(){if(currentRole && !lobbyState.gameStarted){const k=myCharacter();lobbyState[k]={ready:false,joinedAt:null};persistLobby();if(authUser)await sb.from('survivors').update({is_ready:false}).eq('id',authUser.id);}await sb.auth.signOut();authUser=null;document.body.classList.remove('logged-in');$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.remove('show');$('#loginScreen').style.display='grid';$('#loginId').value='';$('#loginPassword').value='';$('#loginError').textContent='';currentRole=null;}
 $('#logoutButton').addEventListener('click',logout);
-const savedRole=sessionStorage.getItem('dz_login_role');if(savedRole==='ho1')applyLogin(loginAccounts.HO11111);else if(savedRole==='ho2')applyLogin(loginAccounts.HO22222);
+async function restoreAuth(){try{const {data}=await sb.auth.getSession();if(data.session){authUser=data.session.user;await loadCloudData();const role=authUser.email==='ho1@deadzone.local'?'ho1':'ho2';applyLogin(accountForRole(role));}}catch(err){console.error('세션 복원 실패',err)}}restoreAuth();
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(t){let e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
@@ -412,6 +420,47 @@ function renderProfiles(){
 renderProfiles();
 renderLobby();
 if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($('#heroLocation'))$('#heroLocation').textContent=currentLocation;
+
+async function loadCloudData(){
+ if(!authUser)return;
+ cloudSyncBusy=true;
+ try{
+  const {data:rows,error}=await sb.from('survivors').select('*').order('ho_number');
+  if(error)throw error;
+  const mapped={a:'HO1',b:'HO2'};
+  (rows||[]).forEach(row=>{
+   const k=row.ho_number==='HO1'?'a':row.ho_number==='HO2'?'b':null;if(!k)return;
+   profiles[k]={...(profiles[k]||{}),name:row.character_name||'',bio:row.appearance||row.background||'',saved:!!row.character_name,img:profiles[k]?.img||''};
+   lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
+  });
+  const {data:gs,error:ge}=await sb.from('game_state').select('*').eq('id',1).maybeSingle();
+  if(ge)throw ge;
+  if(gs){lobbyState.gameStarted=!!gs.game_started;currentLocation=gs.current_location||currentLocation;if($('#heroLocation'))$('#heroLocation').textContent=currentLocation;if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($('#dayLabel'))$('#dayLabel').textContent=gs.current_day===1?'첫째 날':gs.current_day+'일차';}
+  save(keys[0],profiles);persistLobby();renderProfiles();renderLobby();
+ }finally{cloudSyncBusy=false}
+}
+async function syncProfileToCloud(k){
+ if(!authUser)return;
+ const p=profiles[k];
+ const {error}=await sb.from('survivors').update({character_name:p.name,appearance:p.bio,is_ready:false,updated_at:new Date().toISOString()}).eq('id',authUser.id);
+ if(error)throw error;
+}
+async function refreshCloudLobby(){
+ if(!authUser||cloudSyncBusy)return;
+ try{
+  const {data:rows,error}=await sb.from('survivors').select('ho_number,character_name,appearance,is_ready').order('ho_number');
+  if(error)throw error;
+  (rows||[]).forEach(row=>{const k=row.ho_number==='HO1'?'a':row.ho_number==='HO2'?'b':null;if(!k)return;
+   const old=profiles[k]||{};profiles[k]={...old,name:row.character_name||old.name||'',bio:row.appearance||row.background||old.bio||'',saved:!!row.character_name,img:old.img||''};
+   lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
+  });
+  const {data:gs}=await sb.from('game_state').select('current_day,current_location,game_started').eq('id',1).maybeSingle();
+  if(gs){lobbyState.gameStarted=!!gs.game_started;currentLocation=gs.current_location||currentLocation;if($('#heroLocation'))$('#heroLocation').textContent=currentLocation;if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($('#dayLabel'))$('#dayLabel').textContent=gs.current_day===1?'첫째 날':gs.current_day+'일차';}
+  save(keys[0],profiles);persistLobby();renderProfiles();renderLobby();
+  if(lobbyState.gameStarted&&bothReady()&&$('#lobbyScreen').classList.contains('show'))enterGame();
+ }catch(err){console.error('서버 동기화 오류',err)}
+}
+
 // 다른 탭의 프로필 변경은 아래 통합 storage 리스너에서 대기실에만 반영합니다.
 function renderMessages(){
  const box=$('#messages');box.innerHTML='';
@@ -424,7 +473,7 @@ $('#chatForm').addEventListener('submit',e=>{e.preventDefault();let text=$('#cha
 // 로그인 계정에 따라 작성 캐릭터가 고정됩니다.
 $('#clearChat').addEventListener('click',()=>{if(confirm('역극 기록을 모두 비울까요?')){messages=[];renderMessages();toast('역극 기록을 비웠습니다.')}});
 function compressImage(file,done){if(!file||!file.type.startsWith('image/')){toast('이미지 파일을 선택해 주세요.');return}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas'),max=700,scale=Math.min(1,max/Math.max(img.width,img.height));canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);done(canvas.toDataURL('image/jpeg',.82))};img.src=reader.result};reader.readAsDataURL(file)}
-function saveMyProfile(name,bio){const k=myCharacter();profiles[k].name=name.trim()||(k==='a'?'생존자 1':'생존자 2');profiles[k].bio=bio.trim();profiles[k].saved=true;if(!lobbyState.gameStarted){lobbyState[k]={ready:false,joinedAt:null};persistLobby();}save(keys[0],profiles);renderProfiles();renderMessages();renderLobby();return k}
+function saveMyProfile(name,bio){const k=myCharacter();profiles[k].name=name.trim()||(k==='a'?'생존자 1':'생존자 2');profiles[k].bio=bio.trim();profiles[k].saved=true;if(!lobbyState.gameStarted){lobbyState[k]={ready:false,joinedAt:null};persistLobby();}save(keys[0],profiles);renderProfiles();renderMessages();renderLobby();if(authUser)syncProfileToCloud(k).catch(err=>{console.error(err);toast('프로필 서버 저장 실패: '+err.message)});return k}
 function applyProfilePermissions(){if(!currentRole)return;const own=myCharacter(),other=own==='a'?'b':'a';['a','b'].forEach(k=>{const card=$('#input'+k.toUpperCase())?.closest('.card');if(!card)return;const locked=k!==own;card.classList.toggle('locked-profile',locked);['#file'+k.toUpperCase(),'#input'+k.toUpperCase(),'#bioInput'+k.toUpperCase()].forEach(sel=>{const el=$(sel);if(el)el.disabled=locked;});});const saveBtn=$('#saveProfiles');if(saveBtn)saveBtn.textContent=(own==='a'?'HO1':'HO2')+' 프로필 저장';}
 ['a','b'].forEach(k=>$('#file'+k.toUpperCase()).addEventListener('change',e=>{if(!currentRole||myCharacter()!==k){toast('본인 계정의 프로필만 수정할 수 있습니다.');e.target.value='';return}const f=e.target.files[0];if(!f)return;compressImage(f,data=>{profiles[k].img=data;const l=k.toUpperCase();$('#preview'+l).innerHTML=`<img src="${data}" alt="초상화 미리보기">`;toast('초상화를 불러왔습니다. 프로필 저장을 눌러 주세요.')})}));
 $('#saveProfiles').addEventListener('click',()=>{if(!currentRole)return;const k=myCharacter(),l=k.toUpperCase();saveMyProfile($('#input'+l).value,$('#bioInput'+l).value);toast('내 프로필을 저장했습니다.')});
@@ -454,6 +503,7 @@ function enterLobby(){
  if(!profiles[k]?.saved){toast('먼저 본인 프로필을 저장해 주세요.');return;}
  lobbyState[k]={ready:true,joinedAt:new Date().toISOString()};
  persistLobby();
+ if(authUser)sb.from('survivors').update({is_ready:true}).eq('id',authUser.id).then(({error})=>{if(error){console.error(error);toast('대기 상태 서버 저장 실패: '+error.message)}});
  $('#profileGate').classList.remove('show');$('#lobbyScreen').classList.add('show');renderLobby();
 }
 $('#enterSiteButton').addEventListener('click',()=>{
@@ -503,6 +553,7 @@ window.addEventListener('storage',e=>{
 });
 // 서로 다른 탭에서 대기실 상태가 바뀌는 경우를 대비해 주기적으로 동기화합니다.
 setInterval(syncLobby,1000);
+setInterval(refreshCloudLobby,3000);
 
 function renderLogs(){const box=$('#newLogs');box.innerHTML='';logs.forEach(l=>{let d=document.createElement('div');d.className='log-entry';d.innerHTML=`<time>${esc(l.date)} · ${esc(l.title||'생존 기록')}</time><p>${esc(l.text)}</p>`;box.prepend(d)});$('#logCount').textContent=logs.length+'개 기록';save(keys[2],logs)}
 renderLogs();
