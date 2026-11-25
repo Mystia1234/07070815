@@ -585,7 +585,7 @@ if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($(
 
 // ── 양쪽 기기 실시간 기록 동기화 (game_logs 폴링) ──
 let liveCursor=0,liveTimer=null,liveBusy=false,applyingRemoteEvent=false;
-async async function publishLiveEvent(type,payload){
+async function publishLiveEvent(type,payload){
  if(!authUser||applyingRemoteState||applyingRemoteEvent)return;
  try{const content=JSON.stringify({__dz_live:1,type,payload,from:authUser.id,at:Date.now()});
   const {error}=await sb.from('game_logs').insert({user_id:authUser.id,content});if(error)console.error('실시간 전송 실패',error);
