@@ -609,7 +609,16 @@ async function pollLiveEvents(){
 }
 async function startLiveSync(){
  if(!authUser)return;if(liveTimer)clearInterval(liveTimer);
- try{const {data,error}=await sb.from('game_logs').select('id').order('id',{ascending:false}).limit(1);if(error)throw error;liveCursor=Number(data?.[0]?.id)||0;}catch(err){console.error('실시간 동기화 시작 실패',err);return}
+ try{
+  const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').order('id',{ascending:false}).limit(500);if(error)throw error;
+  const rows=data||[];liveCursor=rows.reduce((m,row)=>Math.max(m,Number(row.id)||0),0);
+  // 접속 시 기기별 localStorage 값이 달라도 가장 최근 생존 상태 이벤트를 공통 기준으로 맞춘다.
+  for(const row of rows){
+   try{const ev=JSON.parse(row.content);if(ev.__dz_live===1&&ev.type==='survival'&&ev.payload?.state){
+    applyingRemoteState=true;survival=ev.payload.state;localStorage.setItem(survivalKey,JSON.stringify(survival));renderSurvival();applyingRemoteState=false;break;
+   }}catch{}
+  }
+ }catch(err){applyingRemoteState=false;console.error('실시간 동기화 시작 실패',err);return}
  liveTimer=setInterval(pollLiveEvents,1200);pollLiveEvents();
 }
 
