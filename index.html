@@ -447,7 +447,7 @@ async function loadCloudData(){
   const mapped={a:'HO1',b:'HO2'};
   (rows||[]).forEach(row=>{
    const k=row.ho_number==='HO1'?'a':row.ho_number==='HO2'?'b':null;if(!k)return;
-   profiles[k]={...(profiles[k]||{}),name:row.character_name||'',bio:row.appearance||row.background||'',saved:!!row.character_name,img:profiles[k]?.img||''};
+   profiles[k]={...(profiles[k]||{}),name:row.character_name||'',bio:row.appearance||row.background||'',saved:!!row.character_name,img:row.avatar_data||profiles[k]?.img||''};
    lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
   });
   const {data:gs,error:ge}=await sb.from('game_state').select('*').eq('id',1).maybeSingle();
