@@ -327,7 +327,7 @@ input,textarea,select,.field{background:#fff!important;border:2px solid #000!imp
 <div id="dzGame"><div class="dz-top"><span><strong>DEAD ZONE</strong>　/　DAY 01</span><span id="dzClock">08:00　·　안전지대</span></div>
 <div class="dz-main"><section class="dz-scene"><div><div class="dz-kicker">CURRENT FIELD / 01</div><h2 id="dzPlaceTitle">안전지대</h2><div id="dzLocationPair" class="dz-location-pair" aria-live="polite"><div class="dz-location-row"><b>HO1</b><span>안전지대</span><small>대기 중</small></div><div class="dz-location-row"><b>HO2</b><span>안전지대</span><small>대기 중</small></div></div><p id="dzSceneText">낡은 건물 안은 고요하다. 먼지 쌓인 창문 너머로 텅 빈 도로가 보인다. 멀리서 금속을 긁는 소리가 들려온다.</p></div><div class="dz-scene-foot"><span>위험도　<span style="color:#df766b">UNKNOWN</span></span><span>탐색 가능 지역　10</span></div></section><section class="dz-feed"><div class="dz-kicker">FIELD LOG / 진행 기록</div><div id="dzFeedMount"></div></section><section class="dz-inline-rp" id="dzInlineRp"><div class="dz-kicker">SURVIVOR TO SURVIVOR / ROLEPLAY</div><div class="dz-rp-content" id="activity-rp">
  <div class="content-head"><div><div class="eyebrow">두 사람의 비공개 기록</div><h2>역극 통신</h2></div><span class="tag">서버 실시간 공유</span></div>
- <div class="card"><div class="card-head"><span>대화 기록</span><small id="msgCount">0개 메시지</small></div><div class="chatbox"><div class="messages" id="messages"><div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div></div><form class="composer" id="chatForm"><textarea id="chatInput" placeholder="대사와 지문을 자유롭게 입력하세요..." required></textarea><button class="btn" type="submit">보내기 ↗</button></form></div></div>
+ <div class="card"><div class="card-head"><span>대화 기록</span><small id="msgCount">0개 메시지</small></div><p id="liveSyncStatus" class="hint" role="status" aria-live="polite" style="margin:6px 0 10px;font-size:12px">서버 연결 확인 중…</p><div class="chatbox"><div class="messages" id="messages"><div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div></div><form class="composer" id="chatForm"><textarea id="chatInput" placeholder="대사와 지문을 자유롭게 입력하세요..." required></textarea><button class="btn" type="submit">보내기 ↗</button></form></div></div>
  <div class="row"><span class="hint" id="chatRoleHint">로그인한 계정의 캐릭터로 작성합니다.</span><button class="btn secondary" id="clearChat">대화 기록 비우기</button></div>
  <p class="hint">로그인한 계정(HO1 또는 HO2)에 지정된 캐릭터로만 작성할 수 있습니다. 역극은 로그인한 HO1·HO2 계정 사이에서 서버를 통해 공유됩니다.</p>
 </div>
@@ -620,27 +620,27 @@ renderLobby();
 if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($('#heroLocation'))$('#heroLocation').textContent=currentLocation;
 
 
-// ── 양쪽 기기 실시간 기록 동기화 (game_logs 폴링) ──
-// game_logs.id가 UUID일 수도 있으므로 숫자 ID 비교를 하지 않고 created_at + row ID로 중복을 막는다.
-let liveCursor='',liveTimer=null,liveBusy=false,applyingRemoteEvent=false;
+// ── 양쪽 기기 실시간 기록 동기화 ──
+// 매번 최신 행을 다시 읽어 UUID/타임스탬프 커서 누락을 피한다.
+let liveTimer=null,liveBusy=false,applyingRemoteEvent=false;
 const liveSeenIds=new Set();
 function liveRowKey(row){return String(row.id||((row.created_at||'')+'|'+(row.user_id||'')+'|'+(row.content||'')));}
-function advanceLiveCursor(row){
- const stamp=row.created_at||'';
- if(stamp&&(!liveCursor||new Date(stamp).getTime()>new Date(liveCursor).getTime()))liveCursor=stamp;
+function setLiveStatus(message,isError=false){
+ const el=$('#liveSyncStatus');
+ if(el){el.textContent=message;el.dataset.error=isError?'1':'0';}
 }
 async function publishLiveEvent(type,payload){
- if(!authUser||applyingRemoteState||applyingRemoteEvent){toast('로그인 연결이 없어 다른 기기로 전송하지 못했습니다. 다시 로그인해 주세요.');return false;}
+ if(!authUser||applyingRemoteState||applyingRemoteEvent){setLiveStatus('로그인 연결이 없어 전송하지 못했습니다.',true);return false;}
  try{
   const content=JSON.stringify({__dz_live:1,type,payload,from:authUser.id,at:Date.now()});
   const {error}=await sb.from('game_logs').insert({user_id:authUser.id,content});
   if(error)throw error;
-  const status=$('#msgCount');if(status)status.textContent='서버 전송 성공 · 수신 대기 중';
+  setLiveStatus('서버 전송 완료 · 상대방 수신 대기 중');
   return true;
  }catch(err){
   console.error('실시간 전송 실패',err);
-  const status=$('#msgCount');if(status)status.textContent='전송 오류: '+(err.message||'권한 확인 필요').slice(0,100);
-  toast('역극 전송 실패: '+(err.message||'game_logs INSERT 권한을 확인해 주세요.'));
+  setLiveStatus('전송 실패: '+(err.message||'권한 확인 필요'),true);
+  toast('서버 전송 실패: '+(err.message||'game_logs INSERT 권한을 확인해 주세요.'));
   return false;
  }
 }
@@ -653,47 +653,57 @@ function applyLiveEvent(ev){
   else if(ev.type==='roleplay'){const m=ev.payload;if(!messages.some(x=>x.liveId&&x.liveId===m.liveId)){messages.push(m);messages=messages.slice(-200);save(keys[1],messages);renderMessages();}}
   else if(ev.type==='location'&&ev.payload?.character&&ev.payload?.location){const k=ev.payload.character;if(k==='a'||k==='b'){survivorLocations[k]=ev.payload.location;saveSurvivorLocations();renderSurvivorLocations();}}
   else if(ev.type==='activity'&&ev.payload?.character&&ev.payload?.activity){const k=ev.payload.character;if(k==='a'||k==='b'){survivorActivities[k]=String(ev.payload.activity).slice(0,80);saveSurvivorActivities();renderSurvivorLocations();}}
-  else if(ev.type==='feed'){const f=ev.payload;if(!trpgState.feed.some(x=>x.liveAt===f.liveAt&&x.title===f.title)){trpgState.feed.unshift(f);trpgState.feed=trpgState.feed.slice(0,30);renderTRPGFeed();persistTRPG();}}
+  else if(ev.type==='feed'){const f=ev.payload;if(!trpgState.feed.some(x=>x.liveAt===f.liveAt&&x.title===f.title)){trpgState.feed.unshift(f);trpgState.feed=trpgState.feed.slice(-30);renderTRPGFeed();persistTRPG();}}
   else if(ev.type==='survival'&&ev.payload?.state){applyingRemoteState=true;survival=ev.payload.state;localStorage.setItem(survivalKey,JSON.stringify(survival));renderSurvival();applyingRemoteState=false;}
   else if(ev.type==='reset'&&ev.payload?.state){applyingRemoteState=true;survival=ev.payload.state;localStorage.setItem(survivalKey,JSON.stringify(survival));trpgState.feed=[];trpgState.turn=0;trpgState.events=0;persistTRPG();renderTRPGFeed();renderSurvival();applyingRemoteState=false;}
  }finally{applyingRemoteEvent=false;applyingRemoteState=false}
+}
+async function fetchLatestLiveRows(){
+ const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').order('created_at',{ascending:false}).limit(1000);
+ if(error)throw error;
+ return data||[];
+}
+function consumeLiveRows(rows,includeOwn=false){
+ // DB 조회는 최신순이므로 오래된 이벤트부터 재생한다.
+ rows.slice().reverse().forEach(row=>{
+  const key=liveRowKey(row);if(liveSeenIds.has(key))return;liveSeenIds.add(key);
+  try{
+   const ev=JSON.parse(row.content);if(ev.__dz_live!==1)return;
+   if(includeOwn||row.user_id!==authUser?.id)applyLiveEvent({...ev,from:row.user_id||ev.from});
+  }catch(err){console.warn('실시간 기록 해석 실패',err)}
+ });
+ if(liveSeenIds.size>5000){const keep=[...liveSeenIds].slice(-2500);liveSeenIds.clear();keep.forEach(k=>liveSeenIds.add(k));}
 }
 async function pollLiveEvents(){
  if(!authUser||liveBusy)return;
  liveBusy=true;
  try{
-  // 짧은 시간 겹쳐 조회해 같은 시각에 생성된 행도 놓치지 않고 ID로 중복 제거한다.
-  const fromTime=liveCursor?new Date(Math.max(0,new Date(liveCursor).getTime()-3000)).toISOString():'1970-01-01T00:00:00.000Z';
-  const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').gte('created_at',fromTime).order('created_at',{ascending:true}).limit(500);
-  if(error)throw error;
-  for(const row of data||[]){
-   const key=liveRowKey(row);
-   if(liveSeenIds.has(key))continue;
-   liveSeenIds.add(key);advanceLiveCursor(row);
-   if(row.user_id===authUser.id)continue;
-   try{const ev=JSON.parse(row.content);if(ev.__dz_live===1)applyLiveEvent(ev)}catch(parseErr){console.warn('실시간 기록 해석 실패',parseErr)}
-  }
-  if(liveSeenIds.size>3000){const keep=[...liveSeenIds].slice(-1500);liveSeenIds.clear();keep.forEach(x=>liveSeenIds.add(x));}
+  const rows=await fetchLatestLiveRows();
+  consumeLiveRows(rows,false);
+  setLiveStatus('서버 연결됨 · 최근 기록 확인 완료 ('+rows.length+'건)');
  }catch(err){
   console.error('실시간 수신 실패',err);
-  const status=$('#msgCount');if(status)status.textContent='수신 오류: '+(err.message||'서버 권한 확인 필요').slice(0,100);
-  if(!window.__dzPollErrorShown){window.__dzPollErrorShown=true;toast('역극 수신 실패: '+(err.message||'game_logs SELECT 권한을 확인해 주세요.'));}
+  setLiveStatus('수신 실패: '+(err.message||'game_logs SELECT 권한 확인'),true);
+  if(!window.__dzPollErrorShown){window.__dzPollErrorShown=true;toast('상대방 기록을 읽지 못했습니다: '+(err.message||'SELECT 권한을 확인해 주세요.'));}
  }finally{liveBusy=false}
 }
 async function startLiveSync(){
  if(!authUser)return;
  if(liveTimer)clearInterval(liveTimer);
- liveSeenIds.clear();liveCursor='';
+ liveSeenIds.clear();
  try{
-  const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').order('created_at',{ascending:false}).limit(500);
-  if(error)throw error;
-  const rows=data||[];
-  rows.forEach(row=>{liveSeenIds.add(liveRowKey(row));advanceLiveCursor(row)});
-  // 최근 역극 이벤트를 오래된 순서로 재생해 마지막 초기화 이후의 기록만 복원한다.
+  const rows=await fetchLatestLiveRows();
+  // 과거 로그를 각 기기의 localStorage가 아니라 서버의 공통 기록으로 재구성한다.
+  messages=[];
   rows.slice().reverse().forEach(row=>{
-   if(row.user_id===authUser.id)return;
-   try{const ev=JSON.parse(row.content);if(ev.__dz_live===1&&(ev.type==='roleplay'||ev.type==='roleplay_clear'))applyLiveEvent(ev)}catch{}
+   try{
+    const ev=JSON.parse(row.content);if(ev.__dz_live!==1)return;
+    if(ev.type==='roleplay_clear')messages=[];
+    else if(ev.type==='roleplay'&&ev.payload&&!messages.some(m=>m.liveId&&m.liveId===ev.payload.liveId))messages.push(ev.payload);
+   }catch{}
   });
+  messages=messages.slice(-200);save(keys[1],messages);renderMessages();
+  consumeLiveRows(rows,true);
   let restoredSurvival=false;const restoredLocations={},restoredActivities={};
   for(const row of rows){
    try{const ev=JSON.parse(row.content);if(ev.__dz_live!==1)continue;
@@ -704,13 +714,13 @@ async function startLiveSync(){
    if(restoredSurvival&&restoredLocations.a&&restoredLocations.b&&restoredActivities.a&&restoredActivities.b)break;
   }
   Object.assign(survivorLocations,restoredLocations);Object.assign(survivorActivities,restoredActivities);saveSurvivorLocations();saveSurvivorActivities();renderSurvivorLocations();
+  setLiveStatus('서버 연결됨 · 공통 기록 '+messages.length+'개 불러옴');
  }catch(err){
   applyingRemoteState=false;console.error('실시간 동기화 시작 실패',err);
-  const status=$('#msgCount');if(status)status.textContent='서버 연결 실패: '+(err.message||'').slice(0,90);
+  setLiveStatus('연결 실패: '+(err.message||'game_logs SELECT 권한 확인'),true);
   toast('역극 서버 연결 실패: '+(err.message||'game_logs 조회 권한을 확인해 주세요.'));
   return;
  }
- const status=$('#msgCount');if(status)status.textContent='서버 연결됨 · 동기화 중';
  liveTimer=setInterval(pollLiveEvents,1200);pollLiveEvents();
 }
 
