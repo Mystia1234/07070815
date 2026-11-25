@@ -327,12 +327,17 @@ input,textarea,select,.field{background:#fff!important;border:2px solid #000!imp
 <div id="dzGame"><div class="dz-top"><span><strong>DEAD ZONE</strong>　/　DAY 01</span><span id="dzClock">08:00　·　안전지대</span></div>
 <div class="dz-main"><section class="dz-scene"><div><div class="dz-kicker">CURRENT FIELD / 01</div><h2 id="dzPlaceTitle">안전지대</h2><div id="dzLocationPair" class="dz-location-pair" aria-live="polite"><div class="dz-location-row"><b>HO1</b><span>안전지대</span><small>대기 중</small></div><div class="dz-location-row"><b>HO2</b><span>안전지대</span><small>대기 중</small></div></div><p id="dzSceneText">낡은 건물 안은 고요하다. 먼지 쌓인 창문 너머로 텅 빈 도로가 보인다. 멀리서 금속을 긁는 소리가 들려온다.</p></div><div class="dz-scene-foot"><span>위험도　<span style="color:#df766b">UNKNOWN</span></span><span>탐색 가능 지역　10</span></div></section><section class="dz-feed"><div class="dz-kicker">FIELD LOG / 진행 기록</div><div id="dzFeedMount"></div></section><section class="dz-inline-rp" id="dzInlineRp"><div class="dz-kicker">SURVIVOR TO SURVIVOR / ROLEPLAY</div><div class="dz-rp-content" id="activity-rp">
  <div class="content-head"><div><div class="eyebrow">두 사람의 비공개 기록</div><h2>역극 통신</h2></div><span class="tag">서버 실시간 공유</span></div>
- <div class="card"><div class="card-head"><span>대화 기록</span><small id="msgCount">0개 메시지</small></div><p id="liveSyncStatus" class="hint" role="status" aria-live="polite" style="margin:6px 0 10px;font-size:12px">서버 연결 확인 중…</p>
-<p id="liveWriteStatus" class="hint" role="status" aria-live="polite" style="margin:0 0 10px;font-size:12px">최근 전송 결과: 아직 없음</p><div class="chatbox"><div class="messages" id="messages"><div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div></div><form class="composer" id="chatForm"><textarea id="chatInput" placeholder="대사와 지문을 자유롭게 입력하세요..." required></textarea><button class="btn" type="submit">보내기 ↗</button></form></div></div>
- <div class="row"><span class="hint" id="chatRoleHint">로그인한 계정의 캐릭터로 작성합니다.</span><button class="btn secondary" id="clearChat">대화 기록 비우기</button></div>
- <p class="hint">로그인한 계정(HO1 또는 HO2)에 지정된 캐릭터로만 작성할 수 있습니다. 역극은 로그인한 HO1·HO2 계정 사이에서 서버를 통해 공유됩니다.</p>
-</div>
-</section><section class="dz-chat"><div class="dz-chat-head">생존자 통신 <small id="dzChatStatus">AI KP 대기 중</small></div><div id="dzChatLog" aria-live="polite"><div class="dz-chat-empty">상황을 입력하고 보내기를 누르면 AI KP가 다음 장면을 진행합니다.</div></div><form id="dzChatForm"><textarea id="dzChatInput" rows="3" placeholder="구동현 또는 백재하의 대사와 행동을 입력하세요..." required></textarea><button id="dzChatSend" type="submit">보내기 ↗</button></form></section></div>
+ <div class="card" id="rpV2Panel">
+  <div class="card-head"><span>대화 기록</span><small id="rpV2Count">0개 메시지</small></div>
+  <p id="rpV2SyncStatus" class="hint" role="status" aria-live="polite" style="margin:6px 0 10px;font-size:12px">새 역극 서버 연결 확인 중…</p>
+  <p id="rpV2WriteStatus" class="hint" role="status" aria-live="polite" style="margin:0 0 10px;font-size:12px">최근 전송 결과: 아직 없음</p>
+  <div class="chatbox"><div class="messages" id="rpV2Messages"><div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div></div>
+   <form class="composer" id="rpV2Form"><textarea id="rpV2Input" placeholder="대사와 지문을 자유롭게 입력하세요..." required></textarea><button class="btn" type="submit">보내기 ↗</button></form>
+  </div>
+ </div>
+ <div class="row"><span class="hint" id="rpV2RoleHint">로그인한 계정의 캐릭터로 작성합니다.</span><button class="btn secondary" id="rpV2Clear">대화 기록 비우기</button></div>
+ <p class="hint">로그인한 계정(HO1 또는 HO2)에 지정된 캐릭터로만 작성할 수 있습니다. 역극 기록은 별도 서버 동기화로 양쪽 기기에 공유됩니다.</p>
+</div></section><section class="dz-chat"><div class="dz-chat-head">생존자 통신 <small id="dzChatStatus">AI KP 대기 중</small></div><div id="dzChatLog" aria-live="polite"><div class="dz-chat-empty">상황을 입력하고 보내기를 누르면 AI KP가 다음 장면을 진행합니다.</div></div><form id="dzChatForm"><textarea id="dzChatInput" rows="3" placeholder="구동현 또는 백재하의 대사와 행동을 입력하세요..." required></textarea><button id="dzChatSend" type="submit">보내기 ↗</button></form></section></div>
 <aside class="dz-side"><div class="dz-survivors"><div class="dz-survivor"><b id="dzNameA">구동현</b><strong>HP <span id="dzHpA">100 / 100</span></strong><div class="dz-meter"><i id="dzHpBarA" style="width:100%"></i></div><strong>정신력 <span id="dzSanA">100 / 100</span></strong><div class="dz-meter san-meter"><i id="dzSanBarA" style="width:100%"></i></div><div class="dz-needs"><div><strong>허기 <span id="dzHungerA">100 / 100</span></strong><div class="dz-meter need-meter"><i id="dzHungerBarA" style="width:100%"></i></div></div><div><strong>갈증 <span id="dzThirstA">100 / 100</span></strong><div class="dz-meter need-meter thirst-meter"><i id="dzThirstBarA" style="width:100%"></i></div></div><div><strong>피로 <span id="dzFatigueA">100 / 100</span></strong><div class="dz-meter need-meter fatigue-meter"><i id="dzFatigueBarA" style="width:100%"></i></div></div></div><div class="dz-body-wrap"><strong class="dz-body-title">신체 상태</strong><div class="dz-body-row"><svg class="dz-body-svg" viewBox="0 0 100 190" role="img" aria-label="전신 신체 상태 도식"><path class="body-silhouette" d="M50 3 C41 3 35 10 35 20 C35 29 40 35 45 37 L43 43 C35 44 29 48 25 55 L16 83 C14 89 17 94 22 95 C26 96 29 92 31 87 L38 67 L39 91 L35 111 L31 145 L28 181 Q28 187 35 187 L42 187 L49 137 L51 137 L58 187 L66 187 Q73 187 72 181 L69 145 L65 111 L61 91 L62 67 L69 87 C71 92 74 96 78 95 C83 94 86 89 84 83 L75 55 C71 48 65 44 57 43 L55 37 C60 35 65 29 65 20 C65 10 59 3 50 3 Z"/><path class="body-detail" d="M43 43 Q50 47 57 43 M39 91 Q50 98 61 91 M40 111 L60 111 M49 137 L51 137"/><path class="body-zone" data-part="머리" d="M50 4 C41 4 36 11 36 20 C36 29 42 35 50 36 C58 35 64 29 64 20 C64 11 59 4 50 4Z"/><path class="body-zone" data-part="몸통" d="M43 43 Q50 47 57 43 C65 45 70 49 74 57 L64 91 Q50 99 36 91 L26 57 C30 49 35 45 43 43Z"/><path class="body-zone" data-part="팔" d="M26 57 L16 83 Q14 89 19 93 Q25 97 29 87 L39 64Z M74 57 L84 83 Q86 89 81 93 Q75 97 71 87 L61 64Z"/><path class="body-zone" data-part="다리" d="M39 91 L61 91 L65 111 L69 145 L72 181 Q73 187 66 187 L58 187 L51 137 L49 137 L42 187 L34 187 Q27 187 28 181 L31 145 L35 111Z"/></svg><div class="dz-body-legend" id="dzBodyStatusA"><span class="body-ok">● 특이사항 없음</span></div></div></div><small>생존자 01</small></div><div class="dz-survivor"><b id="dzNameB">백재하</b><strong>HP <span id="dzHpB">100 / 100</span></strong><div class="dz-meter"><i id="dzHpBarB" style="width:100%"></i></div><strong>정신력 <span id="dzSanB">100 / 100</span></strong><div class="dz-meter san-meter"><i id="dzSanBarB" style="width:100%"></i></div><div class="dz-needs"><div><strong>허기 <span id="dzHungerB">100 / 100</span></strong><div class="dz-meter need-meter"><i id="dzHungerBarB" style="width:100%"></i></div></div><div><strong>갈증 <span id="dzThirstB">100 / 100</span></strong><div class="dz-meter need-meter thirst-meter"><i id="dzThirstBarB" style="width:100%"></i></div></div><div><strong>피로 <span id="dzFatigueB">100 / 100</span></strong><div class="dz-meter need-meter fatigue-meter"><i id="dzFatigueBarB" style="width:100%"></i></div></div></div><div class="dz-body-wrap"><strong class="dz-body-title">신체 상태</strong><div class="dz-body-row"><svg class="dz-body-svg" viewBox="0 0 100 190" role="img" aria-label="전신 신체 상태 도식"><path class="body-silhouette" d="M50 3 C41 3 35 10 35 20 C35 29 40 35 45 37 L43 43 C35 44 29 48 25 55 L16 83 C14 89 17 94 22 95 C26 96 29 92 31 87 L38 67 L39 91 L35 111 L31 145 L28 181 Q28 187 35 187 L42 187 L49 137 L51 137 L58 187 L66 187 Q73 187 72 181 L69 145 L65 111 L61 91 L62 67 L69 87 C71 92 74 96 78 95 C83 94 86 89 84 83 L75 55 C71 48 65 44 57 43 L55 37 C60 35 65 29 65 20 C65 10 59 3 50 3 Z"/><path class="body-detail" d="M43 43 Q50 47 57 43 M39 91 Q50 98 61 91 M40 111 L60 111 M49 137 L51 137"/><path class="body-zone" data-part="머리" d="M50 4 C41 4 36 11 36 20 C36 29 42 35 50 36 C58 35 64 29 64 20 C64 11 59 4 50 4Z"/><path class="body-zone" data-part="몸통" d="M43 43 Q50 47 57 43 C65 45 70 49 74 57 L64 91 Q50 99 36 91 L26 57 C30 49 35 45 43 43Z"/><path class="body-zone" data-part="팔" d="M26 57 L16 83 Q14 89 19 93 Q25 97 29 87 L39 64Z M74 57 L84 83 Q86 89 81 93 Q75 97 71 87 L61 64Z"/><path class="body-zone" data-part="다리" d="M39 91 L61 91 L65 111 L69 145 L72 181 Q73 187 66 187 L58 187 L51 137 L49 137 L42 187 L34 187 Q27 187 28 181 L31 145 L35 111Z"/></svg><div class="dz-body-legend" id="dzBodyStatusB"><span class="body-ok">● 특이사항 없음</span></div></div></div><small>생존자 02</small></div></div></aside>
 <nav class="dz-bottom"><button data-dz-open="items">가방</button><button id="dzRollDice" type="button">🎲 D100</button><button id="dzAdvanceHour" type="button">⏩ 1시간</button><button id="dzResetSession" type="button">↺ 초기화</button><button data-dz-open="settings">설정</button></nav>
 <section class="dz-drawer" id="dzDrawer"><div class="dz-drawer-head"><span id="dzDrawerTitle">FIELD MENU</span><button class="dz-drawer-close" type="button">닫기 ×</button></div><div id="dzDrawerContent"></div></section></div><div class="content-head"><div><div class="eyebrow">SURVIVAL CONSOLE</div><h2>생존 활동</h2></div><span class="tag">SESSION 01 · 통합 플레이</span></div><div class="activity-tabs" role="tablist" aria-label="생존 활동 기능"><button type="button" class="activity-tab active" data-activity="map">⌖ 지역 탐색</button><button type="button" class="activity-tab" data-activity="actions">⚑ 행동 / 이동</button><button type="button" class="activity-tab" data-activity="rp">✉ 역극 통신</button><button type="button" class="activity-tab" data-activity="trpg">🎲 주사위 / TRPG</button><button type="button" class="activity-tab" data-activity="events">♥ 생존 이벤트</button><button type="button" class="activity-tab" data-activity="encounter">☠ 인카운트</button><button type="button" class="activity-tab" data-activity="items">▤ 소지품</button><button type="button" class="activity-tab" data-activity="save">▣ 저장 / 불러오기</button></div><div class="activity-panel" id="dzSettingsPanel"><div class="content-head"><div><div class="eyebrow">환경 설정</div><h2>설정</h2></div><span class="tag">AI / API</span></div><div id="dzSettingsMount"></div></div>
@@ -560,9 +565,9 @@ function showProfileGate(){
 }
 function applyLogin(account){
  currentRole=account.role;sender=account.character;renderSurvivorLocations();rpV2Start();document.body.classList.add('logged-in');
- $('#activeAccount').textContent=account.label+' 접속 중';$('#chatRoleHint').textContent=account.label+' · '+(sender==='a'?'생존자 1':'생존자 2')+' 계정으로 작성합니다.';
+ $('#activeAccount').textContent=account.label+' 접속 중';$('#rpV2RoleHint').textContent=account.label+' · '+(sender==='a'?'생존자 1':'생존자 2')+' 계정으로 작성합니다.';
  const actor=$('#actorSelect');if(actor){actor.value=sender;[...actor.options].forEach(o=>o.disabled=o.value!==sender);actor.disabled=true;}const actionActor=$('#actionActor');if(actionActor){actionActor.value=sender;actionActor.disabled=true;}
- $('#chatInput').placeholder=(sender==='a'?'HO1':'HO2')+'로 역극을 작성하세요...';
+ $('#rpV2Input').placeholder=(sender==='a'?'HO1':'HO2')+'로 역극을 작성하세요...';
  applyProfilePermissions();
  const own=account.character;
  if(lobbyState[own]?.ready){$('#loginScreen').style.display='none';$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.add('show');renderLobby();if(lobbyState.gameStarted)enterGame();}
@@ -629,11 +634,11 @@ let liveTimer=null,liveBusy=false,applyingRemoteEvent=false;
 const liveSeenIds=new Set();
 function liveRowKey(row){return String(row.id||((row.created_at||'')+'|'+(row.user_id||'')+'|'+(row.content||'')));}
 function setLiveStatus(message,isError=false){
- const el=$('#liveSyncStatus');
+ const el=$('#rpV2SyncStatus');
  if(el){el.textContent=message;el.dataset.error=isError?'1':'0';}
 }
 function setLiveWriteStatus(message,isError=false){
- const el=$('#liveWriteStatus');
+ const el=$('#rpV2WriteStatus');
  if(el){el.textContent='최근 전송 결과: '+message;el.dataset.error=isError?'1':'0';}
 }
 async function publishLiveEvent(type,payload){
@@ -781,13 +786,13 @@ let rpV2Messages=[];
 let rpV2Timer=null,rpV2Busy=false,rpV2Sending=false;
 let rpV2LastRowIds=new Set();
 function rpStatus(message,isError=false){
- const el=$('#liveSyncStatus');if(el){el.textContent=message;el.dataset.error=isError?'1':'0';}
+ const el=$('#rpV2SyncStatus');if(el){el.textContent=message;el.dataset.error=isError?'1':'0';}
 }
 function rpWriteStatus(message,isError=false){
- const el=$('#liveWriteStatus');if(el){el.textContent='최근 전송 결과: '+message;el.dataset.error=isError?'1':'0';}
+ const el=$('#rpV2WriteStatus');if(el){el.textContent='최근 전송 결과: '+message;el.dataset.error=isError?'1':'0';}
 }
 function renderRpV2(){
- const box=$('#messages');if(!box)return;
+ const box=$('#rpV2Messages');if(!box)return;
  box.replaceChildren();
  if(!rpV2Messages.length){
   const empty=document.createElement('div');empty.className='notice';empty.style.cssText='margin:auto;text-align:center';empty.textContent='아직 작성된 역극이 없습니다. 첫 장면을 시작해 보세요.';box.appendChild(empty);
@@ -803,7 +808,7 @@ function renderRpV2(){
    item.append(who,body,time);box.appendChild(item);
   });
  }
- const count=$('#msgCount');if(count)count.textContent=rpV2Messages.length+'개 메시지';
+ const count=$('#rpV2Count');if(count)count.textContent=rpV2Messages.length+'개 메시지';
  box.scrollTop=box.scrollHeight;
 }
 function rpV2Order(rows){
@@ -860,9 +865,9 @@ async function rpV2Write(action,message=null){
  const {error}=await sb.from('game_logs').insert({user_id:authUser.id,content});
  if(error)throw error;
 }
-$('#chatForm').addEventListener('submit',async e=>{
+$('#rpV2Form').addEventListener('submit',async e=>{
  e.preventDefault();e.stopPropagation();
- const input=$('#chatInput'),text=input.value.trim();if(!text||rpV2Sending)return;
+ const input=$('#rpV2Input'),text=input.value.trim();if(!text||rpV2Sending)return;
  if(!authUser){rpWriteStatus('로그인 연결이 없습니다.',true);return;}
  const profile=profiles[sender]||{};
  const message={character:sender,name:profile.name||(sender==='a'?'HO1':'HO2'),text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false})};
@@ -875,7 +880,7 @@ $('#chatForm').addEventListener('submit',async e=>{
   toast('역극을 서버에 저장하지 못했습니다: '+(err.message||'권한을 확인해 주세요.'));
  }finally{rpV2Sending=false;button.disabled=false;button.textContent='보내기 ↗';}
 });
-$('#clearChat').addEventListener('click',async()=>{
+$('#rpV2Clear').addEventListener('click',async()=>{
  if(!confirm('양쪽 기기의 역극 기록을 모두 비울까요?'))return;
  try{await rpV2Write('clear');rpV2Messages=[];renderRpV2();rpWriteStatus('기록 초기화 완료 · 서버 반영 확인 중');await rpV2Refresh();}
  catch(err){rpWriteStatus('초기화 실패: '+(err.message||'서버 권한 확인'),true);toast('역극 초기화 실패: '+(err.message||''));}
