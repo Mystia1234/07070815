@@ -621,10 +621,14 @@ async function loadCloudData(){
  }finally{cloudSyncBusy=false}
 }
 async function syncProfileToCloud(k){
- if(!authUser)return;
+ if(!authUser)throw new Error('로그인 정보가 만료되었습니다. 다시 로그인해 주세요.');
  const p=profiles[k];
- const {error}=await sb.from('survivors').update({character_name:p.name,appearance:p.bio,avatar_data:p.img||null,last_seen_at:new Date().toISOString(),is_ready:false,updated_at:new Date().toISOString()}).eq('id',authUser.id);
+ const {data,error}=await sb.from('survivors').update({
+  character_name:p.name,appearance:p.bio,avatar_data:p.img||null,
+  last_seen_at:new Date().toISOString(),is_ready:false,updated_at:new Date().toISOString()
+ }).eq('id',authUser.id).select('id').maybeSingle();
  if(error)throw error;
+ if(!data?.id)throw new Error('서버에서 프로필을 수정하지 못했습니다. Supabase survivors UPDATE 권한을 확인해 주세요.');
 }
 async function refreshCloudLobby(){
  if(!authUser||cloudSyncBusy)return;
@@ -676,13 +680,30 @@ $('#cropStage').addEventListener('pointermove',e=>{if(!cropDragging||!cropPointe
 $('#cropCancel').addEventListener('click',()=>{$('#cropModal').classList.remove('show');cropImage=null;cropTarget=null});
 $('#cropApply').addEventListener('click',()=>{if(!cropImage||!cropTarget)return;const c=$('#cropCanvas'),data=c.toDataURL('image/jpeg',.88);cropTarget(data);$('#cropModal').classList.remove('show');cropImage=null;cropTarget=null;toast('초상화 구도가 적용됐습니다. 프로필 저장을 눌러 주세요.')});
 
-function saveMyProfile(name,bio){const k=myCharacter();profiles[k].name=name.trim()||(k==='a'?'생존자 1':'생존자 2');profiles[k].bio=bio.trim();profiles[k].saved=true;if(!lobbyState.gameStarted){lobbyState[k]={ready:false,joinedAt:null};persistLobby();}save(keys[0],profiles);renderProfiles();renderMessages();renderLobby();if(authUser)syncProfileToCloud(k).catch(err=>{console.error(err);toast('프로필 서버 저장 실패: '+err.message)});return k}
+async function saveMyProfile(name,bio){
+ const k=myCharacter(),l=k.toUpperCase();
+ profiles[k].name=name.trim()||(k==='a'?'생존자 1':'백재하');
+ profiles[k].bio=bio.trim();profiles[k].saved=true;
+ if(!lobbyState.gameStarted){lobbyState[k]={ready:false,joinedAt:null};persistLobby();}
+ save(keys[0],profiles);renderProfiles();renderMessages();renderLobby();
+ const saveButtons=[$('#saveProfiles'),$('#gateSaveProfile')].filter(Boolean);
+ saveButtons.forEach(b=>{b.disabled=true;b.dataset.oldText=b.textContent;b.textContent='서버 저장 중…'});
+ try{
+  await syncProfileToCloud(k);
+  toast('프로필이 서버에 저장됐어요. 다른 기기에도 반영됩니다.');
+  return k;
+ }catch(err){
+  console.error('프로필 저장 실패',err);
+  toast('프로필 저장 실패: '+(err.message||'서버 연결을 확인해 주세요.'));
+  throw err;
+ }finally{saveButtons.forEach(b=>{b.disabled=false;if(b.dataset.oldText){b.textContent=b.dataset.oldText;delete b.dataset.oldText;}})}
+}
 function applyProfilePermissions(){if(!currentRole)return;const own=myCharacter(),other=own==='a'?'b':'a';if(typeof statMarkup==='function'){statMarkup('a');statMarkup('b');
 $('#saveStatsBtn')?.addEventListener('click',syncOwnStats);}['a','b'].forEach(k=>{const card=$('#input'+k.toUpperCase())?.closest('.card');if(!card)return;const locked=k!==own;card.classList.toggle('locked-profile',locked);['#file'+k.toUpperCase(),'#input'+k.toUpperCase(),'#bioInput'+k.toUpperCase()].forEach(sel=>{const el=$(sel);if(el)el.disabled=locked;});});const saveBtn=$('#saveProfiles');if(saveBtn)saveBtn.textContent=(own==='a'?'HO1':'HO2')+' 프로필 저장';}
 ['a','b'].forEach(k=>$('#file'+k.toUpperCase()).addEventListener('change',e=>{if(!currentRole||myCharacter()!==k){toast('본인 계정의 프로필만 수정할 수 있습니다.');e.target.value='';return}const f=e.target.files[0];if(!f)return;compressImage(f,data=>{profiles[k].img=data;const l=k.toUpperCase();$('#preview'+l).innerHTML=`<img src="${data}" alt="초상화 미리보기">`;toast('초상화를 불러왔습니다. 프로필 저장을 눌러 주세요.')})}));
-$('#saveProfiles').addEventListener('click',()=>{if(!currentRole)return;const k=myCharacter(),l=k.toUpperCase();saveMyProfile($('#input'+l).value,$('#bioInput'+l).value);toast('내 프로필을 저장했습니다.')});
-$('#gateFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f||!currentRole)return;compressImage(f,data=>{const k=myCharacter();profiles[k].img=data;$('#gatePortrait').innerHTML=`<img src="${data}" alt="초상화 미리보기">`;$('#gateSavedHint').textContent='초상화를 불러왔습니다. 프로필 저장을 눌러 주세요.';$('#enterSiteButton').disabled=true})});
-$('#gateSaveProfile').addEventListener('click',()=>{if(!currentRole)return;saveMyProfile($('#gateName').value,$('#gateBio').value);$('#gateSavedHint').textContent='프로필 저장 완료.';$('#enterSiteButton').disabled=false;toast('프로필이 저장되었습니다.')});
+$('#saveProfiles').addEventListener('click',async()=>{if(!currentRole)return;const k=myCharacter(),l=k.toUpperCase();try{await saveMyProfile($('#input'+l).value,$('#bioInput'+l).value)}catch(_){}});
+$('#gateFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f||!currentRole)return;compressImage(f,data=>{const k=myCharacter();profiles[k].img=data;$('#gatePortrait').innerHTML=`<img src="${data}" alt="초상화 미리보기">`;$('#gateSavedHint').textContent='사진이 적용됐어요. 아래 프로필 저장을 눌러 서버에 올려 주세요.';$('#enterSiteButton').disabled=true})});
+$('#gateSaveProfile').addEventListener('click',async()=>{if(!currentRole)return;try{await saveMyProfile($('#gateName').value,$('#gateBio').value);$('#gateSavedHint').textContent='프로필 저장 완료. 다른 기기에도 반영됩니다.';$('#enterSiteButton').disabled=false}catch(_){$('#gateSavedHint').textContent='서버 저장에 실패했습니다. 오류 메시지를 확인해 주세요.';$('#enterSiteButton').disabled=true}});
 function renderLobby(){
  const readyCount=['a','b'].filter(k=>lobbyState[k]?.ready).length;
  ['a','b'].forEach(k=>{
