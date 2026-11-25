@@ -663,9 +663,15 @@ async function fetchLatestLiveRows(){
  if(error)throw error;
  return data||[];
 }
+function orderedLiveRows(rows){
+ // created_at은 같은 시각으로 저장된 행끼리 순서가 뒤섞일 수 있어 이벤트 자체의 at을 우선한다.
+ return (rows||[]).slice().sort((a,b)=>{
+  const readAt=row=>{try{const ev=JSON.parse(row.content);return Number(ev.at)||new Date(row.created_at||0).getTime()||0;}catch{return new Date(row.created_at||0).getTime()||0;}};
+  return readAt(a)-readAt(b)||String(a.id||'').localeCompare(String(b.id||''));
+ });
+}
 function consumeLiveRows(rows,includeOwn=false){
- // DB 조회는 최신순이므로 오래된 이벤트부터 재생한다.
- rows.slice().reverse().forEach(row=>{
+ orderedLiveRows(rows).forEach(row=>{
   const key=liveRowKey(row);if(liveSeenIds.has(key))return;liveSeenIds.add(key);
   try{
    const ev=JSON.parse(row.content);if(ev.__dz_live!==1)return;
@@ -695,7 +701,7 @@ async function startLiveSync(){
   const rows=await fetchLatestLiveRows();
   // 과거 로그를 각 기기의 localStorage가 아니라 서버의 공통 기록으로 재구성한다.
   messages=[];
-  rows.slice().reverse().forEach(row=>{
+  orderedLiveRows(rows).forEach(row=>{
    try{
     const ev=JSON.parse(row.content);if(ev.__dz_live!==1)return;
     if(ev.type==='roleplay_clear')messages=[];
