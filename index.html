@@ -205,7 +205,7 @@ input,textarea,select,.field{background:#fff!important;border:2px solid #000!imp
 #dzInlineRp .composer textarea{display:block!important;visibility:visible!important;opacity:1!important;min-width:0}
 #dzInlineRp .row{display:flex!important;flex-wrap:wrap}
 @media(max-width:760px){#dzGame .dz-main>#dzInlineRp{grid-column:1!important;margin-top:8px;padding:10px}#dzInlineRp .chatbox{height:48vh;min-height:300px}}
-</style>
+/* ROLEPLAY SEND + MOBILE TAP FIX */\n#dzInlineRp .composer{position:relative;z-index:8;pointer-events:auto!important}\n#dzInlineRp .composer textarea,#dzInlineRp .composer button{position:relative;z-index:9;pointer-events:auto!important;touch-action:manipulation}\n#dzInlineRp .composer button{flex:0 0 auto;min-width:76px;min-height:44px}\n</style>
 </head>
 <body>
 <div class="login-screen" id="loginScreen">
@@ -636,7 +636,7 @@ function applyLiveEvent(ev){
  applyingRemoteEvent=true;
  try{
   if(ev.type==='chat'){const m=ev.payload;if(!dzChatHistory.some(x=>x.at&&x.at===m.at&&x.by===m.by)){dzChatHistory.push(m);dzChatHistory=dzChatHistory.slice(-100);localStorage.setItem(dzChatKey,JSON.stringify(dzChatHistory));renderDzChat();}}
-  else if(ev.type==='roleplay'){const m=ev.payload;if(!messages.some(x=>x.liveId&&x.liveId===m.liveId)){messages.push(m);messages=messages.slice(-200);save(keys[1],messages);renderMessages();}}
+  else if(ev.type==='roleplay_clear'){messages=[];save(keys[1],messages);renderMessages();}else if(ev.type==='roleplay'){const m=ev.payload;if(!messages.some(x=>x.liveId&&x.liveId===m.liveId)){messages.push(m);messages=messages.slice(-200);save(keys[1],messages);renderMessages();}}
   else if(ev.type==='location'&&ev.payload?.character&&ev.payload?.location){const k=ev.payload.character;if(k==='a'||k==='b'){survivorLocations[k]=ev.payload.location;saveSurvivorLocations();renderSurvivorLocations();}}
   else if(ev.type==='activity'&&ev.payload?.character&&ev.payload?.activity){const k=ev.payload.character;if(k==='a'||k==='b'){survivorActivities[k]=String(ev.payload.activity).slice(0,80);saveSurvivorActivities();renderSurvivorLocations();}}
   else if(ev.type==='feed'){const f=ev.payload;if(!trpgState.feed.some(x=>x.liveAt===f.liveAt&&x.title===f.title)){trpgState.feed.unshift(f);trpgState.feed=trpgState.feed.slice(0,30);renderTRPGFeed();persistTRPG();}}
@@ -656,7 +656,7 @@ async function startLiveSync(){
   const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').order('id',{ascending:false}).limit(500);if(error)throw error;
   const rows=data||[];liveCursor=rows.reduce((m,row)=>Math.max(m,Number(row.id)||0),0);
   // 다른 생존자가 남긴 역극 기록도 재접속 시 불러온다.
-  rows.slice().reverse().forEach(row=>{if(row.user_id===authUser.id)return;try{const ev=JSON.parse(row.content);if(ev.__dz_live===1&&ev.type==='roleplay')applyLiveEvent(ev)}catch{}});
+  rows.slice().reverse().forEach(row=>{if(row.user_id===authUser.id)return;try{const ev=JSON.parse(row.content);if(ev.__dz_live===1&&(ev.type==='roleplay'||ev.type==='roleplay_clear'))applyLiveEvent(ev)}catch{}});
   // 재접속 시 가장 최근 생존 상태와 생존자별 위치를 복원한다.
   let restoredSurvival=false;const restoredLocations={},restoredActivities={};
   for(const row of rows){
@@ -730,9 +730,9 @@ function renderMessages(){
  $('#msgCount').textContent=messages.length+'개 메시지';box.scrollTop=box.scrollHeight;save(keys[1],messages);
 }
 renderMessages();
-$('#chatForm').addEventListener('submit',async e=>{e.preventDefault();let text=$('#chatInput').value.trim();if(!text)return;if(!authUser){toast('HO1 또는 HO2 계정으로 로그인해야 역극이 공유됩니다.');return;}let p=profiles[sender];const entry={key:sender,name:p.name,text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}),mine:true,liveId:authUser.id+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)};const sent=await publishLiveEvent('roleplay',entry);if(!sent)return;messages.push(entry);setSurvivorActivity(sender,'역극 작성 · '+entry.text.replace(/\s+/g,' ').slice(0,35));$('#chatInput').value='';renderMessages()});
+$('#chatForm').addEventListener('submit',async e=>{e.preventDefault();e.stopPropagation();const input=$('#chatInput');const text=input.value.trim();if(!text)return;if(!authUser){toast('로그인 연결이 만료됐습니다. 다시 로그인해 주세요.');return;}const p=profiles[sender]||{};const entry={key:sender,name:p.name||(sender==='a'?'HO1':'HO2'),text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}),mine:true,liveId:authUser.id+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)};messages.push(entry);messages=messages.slice(-200);input.value='';renderMessages();setSurvivorActivity(sender,'역극 작성 · '+entry.text.replace(/\s+/g,' ').slice(0,35));const sent=await publishLiveEvent('roleplay',entry);if(!sent)toast('이 기기에는 저장했지만 서버 전송은 실패했습니다.');});
 // 로그인 계정에 따라 작성 캐릭터가 고정됩니다.
-$('#clearChat').addEventListener('click',()=>{if(confirm('역극 기록을 모두 비울까요?')){messages=[];renderMessages();toast('역극 기록을 비웠습니다.')}});
+$('#clearChat').addEventListener('click',async()=>{if(!confirm('양쪽 기기의 역극 기록을 모두 비울까요?'))return;messages=[];save(keys[1],messages);renderMessages();if(!authUser){toast('현재 기기의 기록만 비웠습니다. 서버 동기화를 위해 다시 로그인해 주세요.');return;}const ok=await publishLiveEvent('roleplay_clear',{clearedAt:Date.now()});toast(ok?'역극 기록을 양쪽 기기에서 비웠습니다.':'현재 기기 기록은 비웠지만 서버 반영에 실패했습니다.');});
 
 let cropImage=null,cropTarget=null,cropScale=1,cropX=0,cropY=0,cropBase=1,cropDragging=false,cropPointer=null;
 function compressImage(file,done){
