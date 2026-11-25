@@ -191,7 +191,14 @@ input,textarea,select,.field{background:#fff!important;border:2px solid #000!imp
 @keyframes diceOverlayIn{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#diceRollOverlay.show{animation:none}}
 
-.dz-location-pair{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 12px}.dz-location-row{min-width:0;border:1px solid #344638;background:#101912;padding:8px;display:grid;grid-template-columns:1fr auto;gap:4px 8px;font-size:11px}.dz-location-row b{color:#c7d8c1}.dz-location-row span{text-align:right;color:#e2e8dc;overflow-wrap:anywhere}.dz-location-row small{grid-column:1/-1;color:#91a38f;font-size:10px}@media(max-width:420px){.dz-location-pair{grid-template-columns:1fr}}</style>
+.dz-location-pair{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 12px}.dz-location-row{min-width:0;border:1px solid #344638;background:#101912;padding:8px;display:grid;grid-template-columns:1fr auto;gap:4px 8px;font-size:11px}.dz-location-row b{color:#c7d8c1}.dz-location-row span{text-align:right;color:#e2e8dc;overflow-wrap:anywhere}.dz-location-row small{grid-column:1/-1;color:#91a38f;font-size:10px}@media(max-width:420px){.dz-location-pair{grid-template-columns:1fr}}
+/* 진행 기록과 생존자 역극 영역은 HUD에서 항상 표시 */
+#dzGame .dz-main>.dz-feed{display:block!important;visibility:visible!important;min-height:70px;width:100%;order:3}
+#dzGame .dz-main>#dzInlineRp{display:block!important;visibility:visible!important;width:100%;min-height:120px;order:4}
+#dzGame #dzInlineRp>#activity-rp{display:block!important;visibility:visible!important;position:static!important;width:100%;height:auto!important;max-height:none!important;overflow:visible!important}
+#dzGame #dzInlineRp #messages{display:flex!important;visibility:visible!important;min-height:100px;max-height:320px;overflow:auto}
+#dzGame #dzFeedMount{display:block!important;visibility:visible!important;min-height:32px}
+</style>
 </head>
 <body>
 <div class="login-screen" id="loginScreen">
