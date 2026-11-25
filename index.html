@@ -584,7 +584,7 @@ async function refreshCloudLobby(){
   if(error)throw error;
   (rows||[]).forEach(row=>{const k=row.ho_number==='HO1'?'a':row.ho_number==='HO2'?'b':null;if(!k)return;
    const old=profiles[k]||{};profiles[k]={...old,name:row.character_name||old.name||'',bio:row.appearance||row.background||old.bio||'',saved:!!row.character_name,img:row.avatar_data||old.img||''};
-   statsLocked[k]=!!row.stats_locked;if(row.stats&&typeof row.stats==='object'&&!statsLocked[k]){trpgState.stats[k]={...trpgState.stats[k],...row.stats};}if(typeof statMarkup==='function')statMarkup(k);
+   statsLocked[k]=!!row.stats_locked;if(row.stats&&typeof row.stats==='object'){trpgState.stats[k]={...trpgState.stats[k],...row.stats};persistTRPG();}if(typeof statMarkup==='function')statMarkup(k);
    lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
   });
   const {data:gs}=await sb.from('game_state').select('current_day,current_location,game_started').eq('id',1).maybeSingle();
