@@ -826,7 +826,7 @@ function rpV2Rebuild(rows){
  renderRpV2();
 }
 async function rpV2Fetch(){
- const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').order('created_at',{ascending:true}).limit(1000);
+ const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').order('created_at',{ascending:false}).limit(1000);
  if(error)throw error;
  return data||[];
 }
