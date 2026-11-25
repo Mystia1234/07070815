@@ -633,14 +633,9 @@ if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($(
 let liveTimer=null,liveBusy=false,applyingRemoteEvent=false;
 const liveSeenIds=new Set();
 function liveRowKey(row){return String(row.id||((row.created_at||'')+'|'+(row.user_id||'')+'|'+(row.content||'')));}
-function setLiveStatus(message,isError=false){
- const el=$('#rpV2SyncStatus');
- if(el){el.textContent=message;el.dataset.error=isError?'1':'0';}
-}
-function setLiveWriteStatus(message,isError=false){
- const el=$('#rpV2WriteStatus');
- if(el){el.textContent='최근 전송 결과: '+message;el.dataset.error=isError?'1':'0';}
-}
+// 공용 게임 이벤트 상태는 새 역극 패널의 상태 표시를 덮어쓰지 않는다.
+function setLiveStatus(message,isError=false){console.debug('[공용 동기화]',message,isError?'error':'');}
+function setLiveWriteStatus(message,isError=false){console.debug('[공용 이벤트 저장]',message,isError?'error':'');}
 async function publishLiveEvent(type,payload){
  if(!authUser||applyingRemoteState||applyingRemoteEvent){setLiveWriteStatus('로그인 연결이 없어 전송하지 못했습니다.',true);return false;}
  try{
