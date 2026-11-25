@@ -1358,6 +1358,7 @@ function applyWorld(w){
 const origApply=applyLiveEvent;
 applyLiveEvent=function(ev){
  if(ev&&ev.type==='world'){applyWorld(ev.payload);return;}
+ if(ev&&ev.type==='items'){applyItemsRemote(ev.payload);return;}
  return origApply(ev);
 };
 
@@ -1404,11 +1405,69 @@ document.getElementById('dzLocationPair')?.addEventListener('click',e=>{
  }
 });
 
+// ── 소지품: AI 자동 획득/사용 반영 + 두 기기 실시간 동기화 ──
+let itemsAt=0,itemsPubTimer=null,applyingItems=false;
+const origSave=save;
+save=function(k,v){
+ origSave(k,v);
+ if(k===keys[3]&&!applyingItems){clearTimeout(itemsPubTimer);itemsPubTimer=setTimeout(()=>{itemsAt=Date.now();publishLiveEvent('items',{items:items,at:itemsAt});},300);}
+};
+function applyItemsRemote(pl){
+ if(!pl||!Array.isArray(pl.items))return;
+ if((pl.at||0)<itemsAt)return;
+ itemsAt=pl.at||Date.now();applyingItems=true;
+ try{items=pl.items.map(i=>({owner:i.owner||'shared',name:String(i.name||''),qty:String(i.qty||'')}));localStorage.setItem(keys[3],JSON.stringify(items));renderItems();}
+ finally{applyingItems=false}
+}
+const inorm=s=>String(s||'').replace(/\s+/g,'').toLowerCase();
+const qnum=s=>{const m=String(s==null?'':s).match(/\d+/);return m?parseInt(m[0],10):null};
+const setQ=(s,n)=>/\d+/.test(String(s))?String(s).replace(/\d+/,String(n)):n+'개';
+const ownLabel=o=>o==='a'?survName('a'):o==='b'?survName('b'):'공동';
+function inventoryText(){return items.length?items.map(i=>'['+ownLabel(i.owner||'shared')+'] '+i.name+' ('+(i.qty||'수량 미정')+')').join(', '):'없음'}
+function findItem(name,owner){
+ const n=inorm(name);if(!n)return -1;
+ const match=it=>{const m=inorm(it.name);return m&&(m===n||m.includes(n)||n.includes(m))};
+ const idx=items.findIndex(it=>(it.owner||'shared')===owner&&match(it));
+ return idx>=0?idx:items.findIndex(match);
+}
+function applyItemChanges(ch){
+ const lines=[];let survChanged=false;
+ (ch.add||[]).forEach(a=>{
+  const name=String(a.name||'').trim().slice(0,30);if(!name)return;
+  const owner=['a','b','shared'].includes(a.owner)?a.owner:'shared';
+  const add=qnum(a.qty)??1;
+  const ex=items.findIndex(it=>(it.owner||'shared')===owner&&inorm(it.name)===inorm(name));
+  if(ex>=0&&qnum(items[ex].qty)!==null)items[ex].qty=setQ(items[ex].qty,qnum(items[ex].qty)+add);
+  else items.push({owner,name,qty:String(a.qty??'').trim()||'1개'});
+  lines.push('획득 · '+name+' ×'+add+' ('+ownLabel(owner)+')');
+ });
+ (ch.use||[]).forEach(u=>{
+  const owner=['a','b','shared'].includes(u.owner)?u.owner:'shared';
+  const idx=findItem(u.name,owner);
+  if(idx<0){lines.push('사용 불가 · '+String(u.name||'?')+' (소지품에 없음)');return;}
+  const it=items[idx],cur=qnum(it.qty),q=Math.max(1,parseInt(u.qty)||1),nm=it.name;
+  if(cur===null||cur-q<=0)items.splice(idx,1);else it.qty=setQ(it.qty,cur-q);
+  const who=['a','b'].includes(u.who)?u.who:(['a','b'].includes(it.owner)?it.owner:sender);
+  const h=Math.max(0,Math.min(45,parseInt(u.hunger)||0)),t=Math.max(0,Math.min(5,parseInt(u.thirst)||0)),hp=Math.max(0,Math.min(5,parseInt(u.hp)||0)),x=survival[who],eff=[];
+  if(x){
+   if(h){x.hunger=clamp(x.hunger+h,0,100);eff.push('허기 +'+h)}
+   if(t){x.thirst=clamp(x.thirst-t,0,10);eff.push('갈증 회복 '+t)}
+   if(hp){x.hp=Math.min(x.maxHp,x.hp+hp);eff.push('HP +'+hp)}
+   if(eff.length)survChanged=true;
+  }
+  lines.push('사용 · '+nm+' ×'+q+' ('+survName(who)+(eff.length?' · '+eff.join(', '):'')+')');
+ });
+ if(survChanged)renderSurvival();
+ if(lines.length){save(keys[3],items);renderItems();pushFeed('소지품 변동',lines.join('\n'),'AI KP 자동 반영');}
+}
+
 // ── KP 응답에서 상태/착의/경과 시간 해석 ──
 dzApplyKpState=function(raw){
  let clean=String(raw);
  const tm=/\[\[TIME\]\]\s*(\d{1,3})\s*\[\[\/TIME\]\]/.exec(clean);
  if(tm){pendingMinutes=Math.max(1,Math.min(480,parseInt(tm[1],10)));clean=clean.replace(tm[0],'');}
+ const im=/\[\[ITEMS\]\]([\s\S]*?)\[\[\/ITEMS\]\]/.exec(clean);
+ if(im){clean=clean.replace(im[0],'');try{applyItemChanges(JSON.parse(im[1].replace(/```json|```/g,'').trim()))}catch(err){console.warn('KP 소지품 블록 해석 실패',err)}}
  const m=/\[\[STATE\]\]([\s\S]*?)\[\[\/STATE\]\]/.exec(clean);
  if(m){
   clean=clean.replace(m[0],'');
@@ -1436,8 +1495,8 @@ callAI=async function(extra=''){
  const button=$('#aiContinue');button.disabled=true;button.textContent='AI KP 진행 중…';$('#aiStatus').textContent='AI KP가 현재 상황을 정리하고 있습니다…';
  const ti=timeInfo();
  const stats=`A: ${JSON.stringify(trpgState.stats.a)} / B: ${JSON.stringify(trpgState.stats.b)}\n생존 상태 A: ${JSON.stringify(survival.a)}\n생존 상태 B: ${JSON.stringify(survival.b)}\n현재 위치: ${profiles.a?.name||'HO1'}=${survivorLocations.a}(${survivorActivities.a}, 착의: ${dzWorld.clothing.a}) / ${profiles.b?.name||'HO2'}=${survivorLocations.b}(${survivorActivities.b}, 착의: ${dzWorld.clothing.b}) / 단서: ${clues.slice(0,8).map(c=>c.text).join(' | ')}`;
- const system=`너는 한국어 좀비 아포칼립스 2인용 TRPG의 KP(게임 진행자)다. 장르는 현실적이고 긴장감 있는 생존 호러다. 플레이어 캐릭터의 행동과 주사위 결과를 존중하고, 플레이어 캐릭터의 대사·선택·행동을 대신 결정하지 마라. 성공/실패 판정은 이미 코드가 처리했으므로 뒤집지 마라. 상황 묘사와 NPC 대사, 감각적 단서, 선택 가능한 행동을 2~5문단으로 제시하라. 임의로 캐릭터를 죽이거나 감염시키지 말고, 큰 변화는 위험을 예고하거나 판정으로 처리하도록 유도하라. 기존 설정과 모순되지 않게 진행하라. 규칙 설명보다 장면에 집중하라. 현재 게임 시각이 주어지므로 시간대(밤이면 어둡고 시야가 나쁘다, 해가 뜨면 밝아진다)를 묘사에 반영하라. 응답의 맨 끝에 반드시 두 블록을 붙여라. (1) 이번 장면에서 흐른 시간을 분 단위 정수로: [[TIME]]15[[/TIME]] — 대화·관찰은 2~10분, 이동·수색·치료는 10~40분, 먼 거리 이동은 40~90분, 수면·장시간 휴식은 최대 480분. (2) 위치/행동/착의 갱신 블록 한 줄: [[STATE]]{"a":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"},"b":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"}}[[/STATE]] a는 HO1, b는 HO2다. 장소는 안전지대, 주거 지역, 편의점, 병원, 지하철역, 경찰서, 주유소, 옥상, 물류 창고, 학교, 야외 도로 중 가장 가까운 것이나 짧은 장소명을 쓴다. 두 사람이 따로 움직이면 서로 다른 장소를 쓰고, 합류하면 같은 장소를 쓴다. 이번 장면에서 바뀌지 않은 사람은 현재 위치를 그대로 유지한다. 행동은 20자 이내, 착의는 25자 이내로 쓴다. 옷을 갈아입거나 젖거나 찢기거나 피가 묻는 등 변화가 있을 때만 착의를 갱신하고, 아니면 주어진 현재 착의를 그대로 쓴다.`;
- const user=`현재 세계: 2026년 11월 25일 좀비 사태 발생 첫날. 두 생존자가 함께 생존 중이다.\n현재 게임 시각: ${ti.full} (${ti.part})\n능력치: ${stats}\n최근 진행 기록:\n${recentContext()}\n\n행동 중인 플레이어: ${survName(sender)} (${sender==='a'?'HO1':'HO2'})\n플레이어의 추가 행동/지시: ${extra||'직전 기록을 바탕으로 다음 장면을 진행해 줘.'}\n\nKP로서 다음 장면을 자연스럽게 진행해 줘.`;
+ const system=`너는 한국어 좀비 아포칼립스 2인용 TRPG의 KP(게임 진행자)다. 장르는 현실적이고 긴장감 있는 생존 호러다. 플레이어 캐릭터의 행동과 주사위 결과를 존중하고, 플레이어 캐릭터의 대사·선택·행동을 대신 결정하지 마라. 성공/실패 판정은 이미 코드가 처리했으므로 뒤집지 마라. 상황 묘사와 NPC 대사, 감각적 단서, 선택 가능한 행동을 2~5문단으로 제시하라. 임의로 캐릭터를 죽이거나 감염시키지 말고, 큰 변화는 위험을 예고하거나 판정으로 처리하도록 유도하라. 기존 설정과 모순되지 않게 진행하라. 규칙 설명보다 장면에 집중하라. 현재 게임 시각이 주어지므로 시간대(밤이면 어둡고 시야가 나쁘다, 해가 뜨면 밝아진다)를 묘사에 반영하라. 응답의 맨 끝에 반드시 두 블록을 붙여라. (1) 이번 장면에서 흐른 시간을 분 단위 정수로: [[TIME]]15[[/TIME]] — 대화·관찰은 2~10분, 이동·수색·치료는 10~40분, 먼 거리 이동은 40~90분, 수면·장시간 휴식은 최대 480분. (2) 위치/행동/착의 갱신 블록 한 줄: [[STATE]]{"a":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"},"b":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"}}[[/STATE]] a는 HO1, b는 HO2다. 장소는 안전지대, 주거 지역, 편의점, 병원, 지하철역, 경찰서, 주유소, 옥상, 물류 창고, 학교, 야외 도로 중 가장 가까운 것이나 짧은 장소명을 쓴다. 두 사람이 따로 움직이면 서로 다른 장소를 쓰고, 합류하면 같은 장소를 쓴다. 이번 장면에서 바뀌지 않은 사람은 현재 위치를 그대로 유지한다. 행동은 20자 이내, 착의는 25자 이내로 쓴다. 옷을 갈아입거나 젖거나 찢기거나 피가 묻는 등 변화가 있을 때만 착의를 갱신하고, 아니면 주어진 현재 착의를 그대로 쓴다. (3) 이번 장면에서 소지품이 늘거나 줄었을 때만(없으면 생략) 블록을 추가로 붙여라: [[ITEMS]]{"add":[{"name":"생수","qty":"2개","owner":"shared"}],"use":[{"name":"생수","qty":1,"who":"a","hunger":0,"thirst":4,"hp":0}]}[[/ITEMS]] add는 플레이어가 장면에서 실제로 입수한 물건(발견·획득·건네받음)이며, 판정에 실패했거나 아직 확정되지 않은 것은 넣지 마라. owner는 a(HO1 개인)/b(HO2 개인)/shared(공동)이고, 혼자 챙기면 그 사람, 함께 쓸 물자는 shared로 한다. use는 플레이어가 실제로 소모·사용·버린 물건이며 주어진 소지품 목록에 있는 이름만 쓴다. who는 사용한 사람(a/b), hunger(허기 회복 0~45)·thirst(갈증 회복 0~5)·hp(체력 회복 0~5)는 음식·물·의약품일 때만 현실적으로 정한다. 소지품에 없는 물건을 쓰려 하면 use에 넣지 말고 장면에서 없다고 묘사하라.`;
+ const user=`현재 세계: 2026년 11월 25일 좀비 사태 발생 첫날. 두 생존자가 함께 생존 중이다.\n현재 게임 시각: ${ti.full} (${ti.part})\n소지품: ${inventoryText()}\n능력치: ${stats}\n최근 진행 기록:\n${recentContext()}\n\n행동 중인 플레이어: ${survName(sender)} (${sender==='a'?'HO1':'HO2'})\n플레이어의 추가 행동/지시: ${extra||'직전 기록을 바탕으로 다음 장면을 진행해 줘.'}\n\nKP로서 다음 장면을 자연스럽게 진행해 줘.`;
  try{
   const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+aiConfig.key,'Content-Type':'application/json','HTTP-Referer':location.href,'X-Title':'DEAD ZONE TRPG'},body:JSON.stringify({model:aiConfig.model,messages:[{role:'system',content:system},...aiHistory.slice(-10),{role:'user',content:user}],temperature:0.85,max_tokens:1100})});
   const data=await res.json();if(!res.ok)throw new Error(data.error?.message||`OpenRouter 오류 ${res.status}`);
