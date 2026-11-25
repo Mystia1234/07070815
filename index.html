@@ -144,6 +144,37 @@ a{color:#111!important}
  #page-activities .activity-panel#activity-rp .messages{max-height:38vh}
 }
 
+
+/* DEAD ZONE : compact Black Survival field UI */
+#page-activities{display:none;gap:8px}
+#page-activities.active{display:block}
+#page-activities>.content-head{display:flex!important;align-items:center;justify-content:space-between;margin:0 0 8px;padding:8px 10px;border:1px solid #35443a;background:#111914}
+#page-activities>.content-head h2{font-size:16px;margin:0}
+#page-activities>.content-head .eyebrow{font-size:9px}
+#page-activities>.activity-tabs{display:none!important}
+#page-activities .activity-panel{display:none!important}
+#page-activities .activity-panel#activity-rp{display:block!important;margin:0}
+#page-activities .activity-panel#activity-rp>.content-head{display:none!important}
+#page-activities .activity-panel#activity-rp>.card{margin:0;border:1px solid #35443a;background:#111914}
+#page-activities .activity-panel#activity-rp .card-head{padding:8px 10px;font-size:11px}
+#page-activities .activity-panel#activity-rp .chatbox{min-height:0;height:calc(100dvh - 310px);max-height:520px;display:flex;flex-direction:column}
+#page-activities .activity-panel#activity-rp .messages{flex:1;min-height:150px;max-height:none;overflow:auto;padding:10px}
+#page-activities .activity-panel#activity-rp .composer{padding:8px;gap:6px}
+#page-activities .activity-panel#activity-rp .composer textarea{min-height:42px;max-height:90px}
+#page-activities .activity-panel#activity-rp>.row,
+#page-activities .activity-panel#activity-rp>p.hint{display:none!important}
+#page-activities:after{content:"FIELD 01  ·  탐색 / 행동 / 소지품 / 판정 메뉴는 하단 기능 버튼에서 열 수 있습니다.";display:block;padding:7px 9px;color:#9aa99d;font:10px var(--mono);border:1px solid #35443a;background:#111914}
+#page-activities .activity-panel#activity-trpg,
+#page-activities .activity-panel#activity-actions,
+#page-activities .activity-panel#activity-map,
+#page-activities .activity-panel#activity-items,
+#page-activities .activity-panel#activity-save{display:none!important}
+@media(max-width:760px){
+ #page-activities>.content-head{margin-bottom:7px}
+ #page-activities .activity-panel#activity-rp .chatbox{height:calc(100dvh - 280px);min-height:260px}
+ #page-activities .activity-panel#activity-rp .messages{min-height:170px}
+}
+
 </style>
 </head>
 <body>
