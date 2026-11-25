@@ -91,6 +91,16 @@ a{color:#111!important}
 .lobby-state,.lobby-state.ready{border-color:#555!important}
 .lobby-state i{background:#111!important}
 
+
+.quick-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:14px}
+.quick-link{display:flex;align-items:center;gap:12px;min-height:76px;padding:12px 14px;text-align:left;color:var(--text);background:#0d1510;border:1px solid #405344;border-radius:3px;width:100%;transition:background .15s,border-color .15s,transform .15s}
+.quick-link:hover,.quick-link:focus-visible{background:#203126;border-color:#9bb693;transform:translateY(-1px);outline:none}
+.quick-icon{display:grid;place-items:center;flex:0 0 38px;height:38px;border:1px solid #607960;background:#1b2a20;color:#d2e6c9;font-size:19px}
+.quick-copy{display:flex;flex-direction:column;gap:5px;min-width:0}.quick-copy b{font-size:13px;color:#e2ebe2}.quick-copy small{font-size:10px;color:#a8b7aa;line-height:1.45}.quick-arrow{margin-left:auto;color:#9db795;font:18px var(--mono)}
+.page-backbar{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.page-back{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid #60775f;background:#1a281e;color:#e2ebdf;font-size:12px;min-height:40px}
+.page-back:active{background:#304634}.page-back-hint{font-size:10px;color:var(--muted)}
+@media(max-width:560px){.quick-nav{grid-template-columns:1fr;gap:8px;padding:10px}.quick-link{min-height:68px}.page-backbar{position:sticky;top:58px;z-index:8;padding:5px 0;background:#0c110eeb;backdrop-filter:blur(8px)}}
 </style>
 </head>
 <body>
@@ -188,13 +198,13 @@ a{color:#111!important}
   <p>아직 무엇이 일어났는지 정확히 아는 사람은 없다. 감염이 어디까지 퍼졌는지도, 내일 아침이 오기는 할지도 모른다. 다만 분명한 사실이 하나 있다. 이제부터는 스스로 판단하고 살아남아야 한다는 것.</p>
   <div class="sub">※ 위 내용은 시작을 위한 도입부입니다. 이후 사건, 장소, 관계, 생존 방식은 두 캐릭터의 역극으로 자유롭게 정할 수 있습니다.</div>
  </div>
- <div class="card"><div class="card-head">바로가기 <small>생존 활동</small></div><div class="card-body grid2">
-  <button class="btn" onclick="go('map')">⌖ 주변 지역 탐색</button>
-  <button class="btn" onclick="go('actions')">⚑ 행동 선택 / 이동</button>
-  <button class="btn" onclick="go('rp')">✉ 역극 통신 열기</button>
-  <button class="btn" onclick="go('trpg')">🎲 주사위 / TRPG 진행</button>
-  <button class="btn secondary" onclick="go('items')">▤ 소지품 확인</button>
-  <button class="btn secondary" onclick="go('save')">▣ 게임 저장 / 불러오기</button>
+ <div class="card quick-card"><div class="card-head"><span>바로가기</span><small>생존 활동 · 원하는 기능을 선택하세요</small></div><div class="quick-nav">
+  <button class="quick-link" onclick="go('map')"><span class="quick-icon">⌖</span><span class="quick-copy"><b>주변 지역 탐색</b><small>이동할 장소와 주변 상황 확인</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('actions')"><span class="quick-icon">⚑</span><span class="quick-copy"><b>행동 선택 / 이동</b><small>생존 행동 선택 및 판정</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('rp')"><span class="quick-icon">✉</span><span class="quick-copy"><b>역극 통신</b><small>두 생존자의 대화와 상황 기록</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('trpg')"><span class="quick-icon">🎲</span><span class="quick-copy"><b>주사위 / TRPG 진행</b><small>능력치 확인 및 D100 판정</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('items')"><span class="quick-icon">▤</span><span class="quick-copy"><b>소지품 확인</b><small>보유 물자와 아이템 관리</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('save')"><span class="quick-icon">▣</span><span class="quick-copy"><b>게임 저장 / 불러오기</b><small>진행 기록 백업 및 복원</small></span><span class="quick-arrow">→</span></button>
  </div></div>
  <div class="card"><div class="card-head">현재 생존자 <small>등록된 인원 2명</small></div><div class="card-body grid2" id="startPeople">
   <div class="person"><div class="portrait" id="smallPortraitA">A</div><div><h3 id="startNameA">생존자 1</h3><p>첫 번째 기록자</p></div></div>
@@ -423,8 +433,12 @@ async function restoreAuth(){try{const {data}=await sb.auth.getSession();if(data
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(t){let e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
-function go(page){$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page))}
-$$('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+let pageTrail=['start'];
+function go(page,skipTrail=false){const current=$('.page').find(p=>p.classList.contains('active'))?.id.replace('page-','');if(current&&current!==page&&!skipTrail){pageTrail.push(current);if(pageTrail.length>30)pageTrail.shift();}$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));window.scrollTo({top:0,behavior:'instant'});}
+function goBack(){const current=$('.page').find(p=>p.classList.contains('active'))?.id.replace('page-','');let previous=pageTrail.pop();while(previous===current&&pageTrail.length)previous=pageTrail.pop();if(!previous)previous='start';go(previous,true);}
+$('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+$('.page').forEach(page=>{if(page.id==='page-start')return;const head=page.querySelector('.content-head');if(!head||page.querySelector('.page-backbar'))return;const bar=document.createElement('div');bar.className='page-backbar';bar.innerHTML='<button type="button" class="page-back" onclick="goBack()">← 뒤로가기</button><span class="page-back-hint">이전 화면으로 돌아갑니다</span>';page.insertBefore(bar,head);});
+
 function imageMarkup(p,letter){return p.img?`<img src="${p.img}" alt="생존자 초상화">`:letter}
 function renderProfiles(){
  const map=[['a','A'],['b','B']];
