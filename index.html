@@ -610,7 +610,7 @@ async function loadCloudData(){
   const mapped={a:'HO1',b:'HO2'};
   (rows||[]).forEach(row=>{
    const k=row.ho_number==='HO1'?'a':row.ho_number==='HO2'?'b':null;if(!k)return;
-   profiles[k]={...(profiles[k]||{}),name:row.character_name||'',bio:row.appearance||row.background||'',saved:!!row.character_name,img:row.avatar_data||profiles[k]?.img||''};
+   profiles[k]={...(profiles[k]||{}),name:row.character_name||'',bio:row.appearance||row.background||'',saved:!!row.character_name,img:row.avatar_data||''};
    lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
   });
   const {data:gs,error:ge}=await sb.from('game_state').select('*').eq('id',1).maybeSingle();
@@ -637,7 +637,7 @@ async function refreshCloudLobby(){
   const {data:rows,error}=await sb.from('survivors').select('ho_number,character_name,appearance,stats,stats_locked,avatar_data,is_ready,last_seen_at').order('ho_number');
   if(error)throw error;
   (rows||[]).forEach(row=>{const k=row.ho_number==='HO1'?'a':row.ho_number==='HO2'?'b':null;if(!k)return;
-   const old=profiles[k]||{};profiles[k]={...old,name:row.character_name||old.name||'',bio:row.appearance||row.background||old.bio||'',saved:!!row.character_name,img:row.avatar_data||old.img||''};
+   const old=profiles[k]||{};profiles[k]={...old,name:row.character_name||old.name||'',bio:row.appearance||row.background||old.bio||'',saved:!!row.character_name,img:row.avatar_data||''};
    statsLocked[k]=!!row.stats_locked;if(row.stats&&typeof row.stats==='object'){trpgState.stats[k]={...trpgState.stats[k],...row.stats};persistTRPG();}if(typeof statMarkup==='function')statMarkup(k);
    lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
   });
@@ -678,7 +678,7 @@ $('#cropStage').addEventListener('pointerdown',e=>{if(!cropImage)return;cropDrag
 $('#cropStage').addEventListener('pointermove',e=>{if(!cropDragging||!cropPointer)return;const rect=e.currentTarget.getBoundingClientRect(),factor=600/rect.width;cropX=e.clientX*factor-cropPointer.x;cropY=e.clientY*factor-cropPointer.y;drawCrop()});
 ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>$('#cropStage').addEventListener(ev,()=>{cropDragging=false;cropPointer=null}));
 $('#cropCancel').addEventListener('click',()=>{$('#cropModal').classList.remove('show');cropImage=null;cropTarget=null});
-$('#cropApply').addEventListener('click',()=>{if(!cropImage||!cropTarget)return;const c=$('#cropCanvas'),data=c.toDataURL('image/jpeg',.88);cropTarget(data);$('#cropModal').classList.remove('show');cropImage=null;cropTarget=null;toast('초상화 구도가 적용됐습니다. 프로필 저장을 눌러 주세요.')});
+$('#cropApply').addEventListener('click',()=>{if(!cropImage||!cropTarget)return;const c=$('#cropCanvas'),data=c.toDataURL('image/jpeg',.88);cropTarget(data);$('#cropModal').classList.remove('show');cropImage=null;cropTarget=null;});
 
 async function saveMyProfile(name,bio){
  const k=myCharacter(),l=k.toUpperCase();
@@ -700,9 +700,9 @@ async function saveMyProfile(name,bio){
 }
 function applyProfilePermissions(){if(!currentRole)return;const own=myCharacter(),other=own==='a'?'b':'a';if(typeof statMarkup==='function'){statMarkup('a');statMarkup('b');
 $('#saveStatsBtn')?.addEventListener('click',syncOwnStats);}['a','b'].forEach(k=>{const card=$('#input'+k.toUpperCase())?.closest('.card');if(!card)return;const locked=k!==own;card.classList.toggle('locked-profile',locked);['#file'+k.toUpperCase(),'#input'+k.toUpperCase(),'#bioInput'+k.toUpperCase()].forEach(sel=>{const el=$(sel);if(el)el.disabled=locked;});});const saveBtn=$('#saveProfiles');if(saveBtn)saveBtn.textContent=(own==='a'?'HO1':'HO2')+' 프로필 저장';}
-['a','b'].forEach(k=>$('#file'+k.toUpperCase()).addEventListener('change',e=>{if(!currentRole||myCharacter()!==k){toast('본인 계정의 프로필만 수정할 수 있습니다.');e.target.value='';return}const f=e.target.files[0];if(!f)return;compressImage(f,data=>{profiles[k].img=data;const l=k.toUpperCase();$('#preview'+l).innerHTML=`<img src="${data}" alt="초상화 미리보기">`;toast('초상화를 불러왔습니다. 프로필 저장을 눌러 주세요.')})}));
+['a','b'].forEach(k=>$('#file'+k.toUpperCase()).addEventListener('change',e=>{if(!currentRole||myCharacter()!==k){toast('본인 계정의 프로필만 수정할 수 있습니다.');e.target.value='';return}const f=e.target.files[0];if(!f)return;compressImage(f,async data=>{profiles[k].img=data;const l=k.toUpperCase();$('#preview'+l).innerHTML=`<img src="${data}" alt="초상화 미리보기">`;try{await saveMyProfile($('#input'+l).value,$('#bioInput'+l).value);toast('새 프로필 사진을 서버에 저장했습니다.')}catch(err){toast('사진 저장 실패: '+(err.message||'다시 시도해 주세요.'))}})}));
 $('#saveProfiles').addEventListener('click',async()=>{if(!currentRole)return;const k=myCharacter(),l=k.toUpperCase();try{await saveMyProfile($('#input'+l).value,$('#bioInput'+l).value)}catch(_){}});
-$('#gateFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f||!currentRole)return;compressImage(f,data=>{const k=myCharacter();profiles[k].img=data;$('#gatePortrait').innerHTML=`<img src="${data}" alt="초상화 미리보기">`;$('#gateSavedHint').textContent='사진이 적용됐어요. 아래 프로필 저장을 눌러 서버에 올려 주세요.';$('#enterSiteButton').disabled=true})});
+$('#gateFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f||!currentRole)return;compressImage(f,async data=>{const k=myCharacter();profiles[k].img=data;$('#gatePortrait').innerHTML=`<img src="${data}" alt="초상화 미리보기">`;$('#enterSiteButton').disabled=true;$('#gateSavedHint').textContent='사진 서버 저장 중…';try{await saveMyProfile($('#gateName').value,$('#gateBio').value);$('#gateSavedHint').textContent='사진까지 서버에 저장됐어요. 대기실에 입장할 수 있습니다.';$('#enterSiteButton').disabled=false}catch(err){$('#gateSavedHint').textContent='사진 저장 실패: '+(err.message||'다시 시도해 주세요.')}})});
 $('#gateSaveProfile').addEventListener('click',async()=>{if(!currentRole)return;try{await saveMyProfile($('#gateName').value,$('#gateBio').value);$('#gateSavedHint').textContent='프로필 저장 완료. 다른 기기에도 반영됩니다.';$('#enterSiteButton').disabled=false}catch(_){$('#gateSavedHint').textContent='서버 저장에 실패했습니다. 오류 메시지를 확인해 주세요.';$('#enterSiteButton').disabled=true}});
 function renderLobby(){
  const readyCount=['a','b'].filter(k=>lobbyState[k]?.ready).length;
