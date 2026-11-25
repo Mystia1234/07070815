@@ -185,7 +185,6 @@ a{color:#111!important}
  <button data-page="investigation">⌕ 조사 / 단서 <small>09</small></button>
  <button data-page="journal">▧ 생존 기록 <small>07</small></button>
  <button data-page="config">⚙ 설정 <small>09</small></button>
- <button data-page="save">▣ 저장 / 불러오기 <small>10</small></button>
  </nav></div>
  <div class="card"><div class="card-head">저장 안내</div><div class="card-body notice">현재 내용은 자동 저장됩니다. 저장 / 불러오기 메뉴에서 JSON 백업을 내려받을 수 있습니다.</div></div>
 </aside>
@@ -199,13 +198,8 @@ a{color:#111!important}
   <p>아직 무엇이 일어났는지 정확히 아는 사람은 없다. 감염이 어디까지 퍼졌는지도, 내일 아침이 오기는 할지도 모른다. 다만 분명한 사실이 하나 있다. 이제부터는 스스로 판단하고 살아남아야 한다는 것.</p>
   <div class="sub">※ 위 내용은 시작을 위한 도입부입니다. 이후 사건, 장소, 관계, 생존 방식은 두 캐릭터의 역극으로 자유롭게 정할 수 있습니다.</div>
  </div>
- <div class="card quick-card"><div class="card-head"><span>바로가기</span><small>생존 활동 · 원하는 기능을 선택하세요</small></div><div class="quick-nav">
-  <button class="quick-link" onclick="go('activities','map')"><span class="quick-icon">⌖</span><span class="quick-copy"><b>주변 지역 탐색</b><small>이동할 장소와 주변 상황 확인</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('activities','actions')"><span class="quick-icon">⚑</span><span class="quick-copy"><b>행동 선택 / 이동</b><small>생존 행동 선택 및 판정</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('activities','rp')"><span class="quick-icon">✉</span><span class="quick-copy"><b>역극 통신</b><small>두 생존자의 대화와 상황 기록</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('activities','trpg')"><span class="quick-icon">🎲</span><span class="quick-copy"><b>주사위 / TRPG 진행</b><small>능력치 확인 및 D100 판정</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('activities','items')"><span class="quick-icon">▤</span><span class="quick-copy"><b>소지품 확인</b><small>보유 물자와 아이템 관리</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('activities','save')"><span class="quick-icon">▣</span><span class="quick-copy"><b>게임 저장 / 불러오기</b><small>진행 기록 백업 및 복원</small></span><span class="quick-arrow">→</span></button>
+ <div class="card quick-card"><div class="card-head"><span>바로가기</span><small>통합 메뉴</small></div><div class="quick-nav">
+  <button class="quick-link" onclick="go('activities','map')"><span class="quick-icon">⌖</span><span class="quick-copy"><b>생존 활동</b><small>지역 탐색 · 행동 / 이동 · 역극 통신 · TRPG · 소지품 · 저장 / 불러오기</small></span><span class="quick-arrow">→</span></button>
  </div></div>
  <div class="card"><div class="card-head">현재 생존자 <small>등록된 인원 2명</small></div><div class="card-body grid2" id="startPeople">
   <div class="person"><div class="portrait" id="smallPortraitA">A</div><div><h3 id="startNameA">생존자 1</h3><p>첫 번째 기록자</p></div></div>
