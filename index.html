@@ -1304,6 +1304,7 @@ function tick(){$('#clock').textContent=new Date().toLocaleTimeString('ko-KR',{h
 <style>
 .dz-location-row[data-k]{cursor:pointer}
 #dzWorldTime{font-weight:800}
+.dz-location-row small[data-f]{cursor:pointer}
 .dz-location-row i{font-style:normal;font-size:10px}
 </style>
 <script>
@@ -1377,9 +1378,10 @@ renderSurvivorLocations=function(){
  let tEl=document.getElementById('dzWorldTime');
  if(!tEl){const foot=document.querySelector('.dz-scene-foot');if(foot){tEl=document.createElement('span');tEl.id='dzWorldTime';foot.insertBefore(tEl,foot.firstChild);}}
  if(tEl)tEl.textContent='시각　'+ti.full+' ('+ti.part+')';
- const row=(k,name,loc,act)=>'<div class="dz-location-row" data-k="'+k+'"><b>'+esc(name)+'</b><span>'+esc(loc)+'</span><small>행동: '+esc(act)+'</small><small>착의: '+esc(dzWorld.clothing[k]||DEF_CLOTH)+(k===own?' <i>✎ 눌러서 수정</i>':'')+'</small></div>';
+ const row=(k,name,loc,act)=>'<div class="dz-location-row" data-k="'+k+'"><b>'+esc(name)+'</b><span>'+esc(loc)+'</span><small data-f="act">행동: '+esc(act)+(k===own?' <i>✎</i>':'')+'</small><small data-f="cloth">착의: '+esc(dzWorld.clothing[k]||DEF_CLOTH)+(k===own?' <i>✎</i>':'')+'</small></div>';
  const pair=document.getElementById('dzLocationPair');
  if(pair)pair.innerHTML=row('a',nameA,la,actA)+row('b',nameB,lb,actB);
+ renderIntroPin();
  const hero=document.getElementById('heroLocation');
  if(hero)hero.textContent=same?la:nameA+' '+la+' / '+nameB+' '+lb;
  const loc=document.getElementById('currentLocation');if(loc)loc.textContent=currentLocation;
@@ -1390,13 +1392,16 @@ renderSurvivorLocations=function(){
  }
 };
 document.getElementById('dzLocationPair')?.addEventListener('click',e=>{
- const r=e.target.closest('.dz-location-row');if(!r)return;
- const k=r.dataset.k;
- if(k!==sender){toast('본인 캐릭터의 착의만 수정할 수 있습니다.');return;}
- const v=prompt('현재 착의를 입력하세요 (예: 검은 후드티, 청바지, 운동화)',dzWorld.clothing[k]||'');
- if(v===null)return;
- dzWorld.clothing[k]=v.trim().slice(0,40)||DEF_CLOTH;
- renderSurvivorLocations();publishWorld();
+ const f=e.target.closest('small[data-f]');if(!f)return;
+ const r=f.closest('.dz-location-row'),k=r&&r.dataset.k;if(!k)return;
+ if(k!==sender){toast('본인 캐릭터만 수정할 수 있습니다.');return;}
+ if(f.dataset.f==='cloth'){
+  const v=prompt('현재 착의를 입력하세요 (예: 검은 후드티, 청바지, 운동화)',dzWorld.clothing[k]||'');if(v===null)return;
+  dzWorld.clothing[k]=v.trim().slice(0,40)||DEF_CLOTH;renderSurvivorLocations();publishWorld();
+ }else{
+  const v=prompt('현재 행동을 입력하세요',survivorActivities[k]||'');if(v===null)return;
+  setSurvivorActivity(k,v.trim().slice(0,40)||'대기 중');publishWorld();
+ }
 });
 
 // ── KP 응답에서 상태/착의/경과 시간 해석 ──
@@ -1449,53 +1454,36 @@ callAI=async function(extra=''){
  finally{button.disabled=false;button.textContent='AI KP에게 진행 요청'}
 };
 
-// ── 시작 인트로 (FIELD LOG) ──
+// ── 시작 인트로: FIELD LOG 맨 위에 고정 표시 (피드 개수 제한/초기화와 무관하게 항상 보임) ──
 function introText(){
  const a=survName('a'),b=survName('b');
  return `2026년 11월 25일 18:00. 해는 한 시간 전에 졌고, 가로등은 절반쯤 꺼져 있다. 멀리서 사이렌이 끊겼다 이어지기를 반복한다.\n${a}와(과) ${b}은(는) 안전지대로 정한 낡은 건물 안에 있다. 창밖의 도로는 비어 있지만, 금속을 긁는 소리가 어딘가에서 들려온다.\n밤이 깊기 전에 무엇을 할지 정해야 한다.`;
 }
-async function postIntro(){
- dzWorld.introDone=true;
- pushFeed('FIELD LOG · '+timeInfo().full,introText(),'시스템 · 상황 개시');
- await publishWorld();
+function renderIntroPin(){
+ const mount=document.getElementById('dzFeedMount');if(!mount||!mount.parentElement)return;
+ let pin=document.getElementById('dzIntroPin');
+ if(!pin){pin=document.createElement('div');pin.id='dzIntroPin';pin.style.cssText='border:2px solid currentColor;border-radius:6px;padding:9px 11px;margin:0 0 10px;font-size:12px;line-height:1.7;white-space:pre-wrap';mount.parentElement.insertBefore(pin,mount);}
+ pin.textContent='[시작 인트로 · DAY 01 · 18:00]\n'+introText();
 }
-function ensureIntro(){
- if(introBusy||dzWorld.introDone)return;
- if(!currentRole||!authUser||!liveTimer)return;
- if(!lobbyState.gameStarted||!bothReady())return;
- if($('#lobbyScreen').classList.contains('show')||$('#profileGate').classList.contains('show'))return;
- introBusy=true;
- try{
-  if(trpgState.feed.some(f=>f.sub==='시스템 · 상황 개시')){dzWorld.introDone=true;wsave();}
-  else postIntro();
- }finally{introBusy=false}
-}
-setInterval(ensureIntro,3000);
 
-// ── 초기화 버튼: 위치/행동/착의/시각까지 전부 초기화 + 양쪽 기기 반영 ──
-(()=>{
- const old=document.getElementById('dzResetSession');if(!old)return;
- const btn=old.cloneNode(true);old.replaceWith(btn);
- btn.addEventListener('click',async()=>{
-  if(!confirm('진행 기록을 모두 지우고, 생존자 상태·위치·행동·착의·시각을 처음(저녁 6시)으로 되돌릴까요?'))return;
-  ['a','b'].forEach(k=>{const x=survival[k];x.hp=x.maxHp;x.san=x.maxSan;x.hunger=100;x.thirst=0;x.fatigue=0;x.bleeding=0;x.infect=0;x.injuries=[];x.conditions=[];x.alive=true;x.down=false;x.turnsDown=0;});
-  survival.conditionLog=[];trpgState.feed=[];trpgState.turn=0;trpgState.events=0;
-  persistTRPG();renderTRPGFeed();renderSurvival();
-  await publishLiveEvent('reset',{state:survival});
-  ['a','b'].forEach(k=>{
-   survivorLocations[k]='안전지대';survivorActivities[k]='대기 중';
-   publishLiveEvent('location',{character:k,location:'안전지대'});
-   publishLiveEvent('activity',{character:k,activity:'대기 중'});
-  });
-  saveSurvivorLocations();saveSurvivorActivities();
-  aiHistory=[];localStorage.setItem(aiHistoryKey,'[]');
-  dzWorld=freshWorld();dzWorld.introDone=true;
-  renderSurvivorLocations();
-  await publishWorld({reset:true});
-  pushFeed('FIELD LOG · '+timeInfo().full,introText(),'시스템 · 상황 개시');
-  toast('초기화 완료 · DAY 01 18:00부터 다시 시작합니다.');
- });
-})();
+// ── 초기화 버튼: 원본 핸들러보다 먼저(캡처 단계) 실행되어 위치/행동/착의/시각까지 전부 초기화 ──
+document.addEventListener('click',async e=>{
+ if(!e.target.closest||!e.target.closest('#dzResetSession'))return;
+ e.stopImmediatePropagation();e.preventDefault();
+ if(!confirm('진행 기록을 모두 지우고, 생존자 상태·위치·행동·착의·시각을 처음(저녁 6시)으로 되돌릴까요?'))return;
+ ['a','b'].forEach(k=>{const x=survival[k];x.hp=x.maxHp;x.san=x.maxSan;x.hunger=100;x.thirst=0;x.fatigue=0;x.bleeding=0;x.infect=0;x.injuries=[];x.conditions=[];x.alive=true;x.down=false;x.turnsDown=0;});
+ survival.conditionLog=[];trpgState.feed=[];trpgState.turn=0;trpgState.events=0;
+ persistTRPG();renderTRPGFeed();renderSurvival();
+ await publishLiveEvent('reset',{state:survival});
+ ['a','b'].forEach(k=>{survivorLocations[k]='안전지대';survivorActivities[k]='대기 중';});
+ saveSurvivorLocations();saveSurvivorActivities();
+ aiHistory=[];localStorage.setItem(aiHistoryKey,'[]');
+ dzWorld=freshWorld();dzWorld.introDone=true;
+ renderSurvivorLocations();
+ await Promise.all(['a','b'].flatMap(k=>[publishLiveEvent('location',{character:k,location:'안전지대'}),publishLiveEvent('activity',{character:k,activity:'대기 중'})]));
+ await publishWorld({reset:true});
+ toast('초기화 완료 · DAY 01 18:00부터 다시 시작합니다.');
+},true);
 
 renderSurvivorLocations();
 })();
