@@ -72,7 +72,24 @@ body:not(.logged-in)>header,body:not(.logged-in)>main,body:not(.logged-in)>.toas
 .lobby-footnote{font-size:10px;color:#9aa99d;line-height:1.7;margin-top:15px;border-top:1px solid var(--line);padding-top:12px}
 @media(max-width:520px){.lobby-panel{padding:17px}.lobby-grid{grid-template-columns:1fr}.lobby-person .portrait{width:65px;height:78px;flex-basis:65px}}
 
-.topbar #topEditProfileButton{display:none}body.logged-in .topbar #topEditProfileButton{display:inline-flex}</style>
+.topbar #topEditProfileButton{display:none}body.logged-in .topbar #topEditProfileButton{display:inline-flex}
+/* 고대비 라이트 테마: 밝은 배경과 선명한 검은 글자 */
+:root{--bg:#fff;--panel:#fff;--panel2:#f4f4f4;--line:#b8b8b8;--muted:#454545;--text:#111;--green:#111;--bright:#000;--red:#222;--amber:#222}
+body{background:#fff!important;color:#111!important}
+body:before{display:none!important}
+.topbar,.card,.panel,.box,.login-panel,.gate-panel,.lobby-panel,.lobby-person,.modal,.modal-content,.nav,.sidebar,.content,.hero,.stat,.map-item,.inventory-item,.chatbox,.message,.log-entry,.person,.profile-card{background:#fff!important;color:#111!important;border-color:#b8b8b8!important;box-shadow:none!important}
+.topbar{border-bottom:2px solid #111!important}
+.brand,.brand b,.top-right,.content-head h2,.hero h1,.hero h2,.login-panel h1,.gate-panel h2,.lobby-panel h2,.login-kicker,.notice,.hint,.lobby-desc,.lobby-person p,.lobby-footnote,.lobby-state,.lobby-state.ready,.stat,.nav button,.nav button small{color:#111!important}
+button,.btn{background:#111!important;color:#fff!important;border:1px solid #111!important}
+button.secondary,.btn.secondary{background:#fff!important;color:#111!important}
+input,textarea,select,.field{background:#fff!important;color:#111!important;border:1px solid #777!important}
+input::placeholder,textarea::placeholder{color:#555!important;opacity:1}
+a{color:#111!important}
+.lobby-screen,.login-screen,.profile-gate{background:#fff!important}
+.lobby-state,.lobby-state.ready{border-color:#555!important}
+.lobby-state i{background:#111!important}
+
+</style>
 </head>
 <body>
 <div class="login-screen" id="loginScreen">
@@ -442,16 +459,16 @@ async function loadCloudData(){
 async function syncProfileToCloud(k){
  if(!authUser)return;
  const p=profiles[k];
- const {error}=await sb.from('survivors').update({character_name:p.name,appearance:p.bio,is_ready:false,updated_at:new Date().toISOString()}).eq('id',authUser.id);
+ const {error}=await sb.from('survivors').update({character_name:p.name,appearance:p.bio,avatar_data:p.img||null,is_ready:false,updated_at:new Date().toISOString()}).eq('id',authUser.id);
  if(error)throw error;
 }
 async function refreshCloudLobby(){
  if(!authUser||cloudSyncBusy)return;
  try{
-  const {data:rows,error}=await sb.from('survivors').select('ho_number,character_name,appearance,is_ready').order('ho_number');
+  const {data:rows,error}=await sb.from('survivors').select('ho_number,character_name,appearance,avatar_data,is_ready').order('ho_number');
   if(error)throw error;
   (rows||[]).forEach(row=>{const k=row.ho_number==='HO1'?'a':row.ho_number==='HO2'?'b':null;if(!k)return;
-   const old=profiles[k]||{};profiles[k]={...old,name:row.character_name||old.name||'',bio:row.appearance||row.background||old.bio||'',saved:!!row.character_name,img:old.img||''};
+   const old=profiles[k]||{};profiles[k]={...old,name:row.character_name||old.name||'',bio:row.appearance||row.background||old.bio||'',saved:!!row.character_name,img:row.avatar_data||old.img||''};
    lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
   });
   const {data:gs}=await sb.from('game_state').select('current_day,current_location,game_started').eq('id',1).maybeSingle();
