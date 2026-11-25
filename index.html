@@ -399,7 +399,7 @@ input,textarea,select,.field{background:#fff!important;border:2px solid #000!imp
   <div class="row"><label class="notice" style="display:flex;align-items:center;gap:7px"><input type="checkbox" id="aiAuto"> 판정 후 AI KP 자동 진행</label><button class="btn secondary" id="saveAI">설정 저장</button><button class="btn" id="aiContinue">AI KP에게 진행 요청</button></div>
   <div class="hint" id="aiStatus">OpenRouter 키를 입력하고 설정을 저장하세요.</div>
   <label class="notice" for="aiPrompt" style="margin-top:12px">추가 지시 / 플레이어 행동 (선택)</label><textarea class="field" id="aiPrompt" rows="2" placeholder="예: 편의점 셔터를 조금 들어 올려 안쪽을 살핀다."></textarea>
-  <div class="hint">키는 이 브라우저에만 저장됩니다. 다른 사람도 AI를 사용하려면 각자 자신의 OpenRouter 키를 입력해야 합니다.</div>
+  
  </div></div>
  <div class="card"><div class="card-head">시스템 진행자 <small>자동 판정 · 사건 · KPC</small></div><div class="card-body">
   <div class="row" style="margin-bottom:10px"><button class="btn" id="randomEvent">🎲 무작위 사건 발생</button><button class="btn secondary" id="kpcButton">KPC / NPC 등장</button><button class="btn secondary" id="rollOnly">주사위만 굴리기</button></div>
@@ -1150,7 +1150,36 @@ const aiConfigKey='dz2_ai_config', aiHistoryKey='dz2_ai_history';
 let aiConfig=JSON.parse(localStorage.getItem(aiConfigKey)||'null')||{key:'',model:'openai/gpt-4o-mini',auto:false};
 let aiHistory=JSON.parse(localStorage.getItem(aiHistoryKey)||'[]');
 $('#aiKey').value=aiConfig.key||'';$('#aiModel').value=aiConfig.model||'openai/gpt-4o-mini';$('#aiAuto').checked=!!aiConfig.auto;
-$('#saveAI').addEventListener('click',()=>{aiConfig={key:$('#aiKey').value.trim(),model:$('#aiModel').value.trim()||'openai/gpt-4o-mini',auto:$('#aiAuto').checked};localStorage.setItem(aiConfigKey,JSON.stringify(aiConfig));$('#aiStatus').textContent=aiConfig.key?'설정 저장 완료. AI KP를 사용할 수 있습니다.':'OpenRouter API 키를 입력해 주세요.';toast('AI 설정을 저장했습니다.')});
+$('#saveAI').addEventListener('click',async()=>{aiConfig={key:$('#aiKey').value.trim(),model:$('#aiModel').value.trim()||'openai/gpt-4o-mini',auto:$('#aiAuto').checked};localStorage.setItem(aiConfigKey,JSON.stringify(aiConfig));aiDirty=false;await saveSharedAI();$('#aiStatus').textContent=aiConfig.key?'설정 저장 완료. AI KP를 사용할 수 있습니다.':'OpenRouter API 키를 입력해 주세요.';toast('AI 설정을 저장했습니다.')});
+// ── 두 계정 공유 OpenRouter 설정 (Supabase app_settings) ──
+var aiDirty=false,sharedAIBusy=false;
+async function saveSharedAI(){
+ if(!authUser){toast('로그인 후 저장할 수 있습니다.');return false;}
+ const {error}=await sb.from('app_settings').upsert({id:1,openrouter_key:aiConfig.key,openrouter_model:aiConfig.model,ai_auto:!!aiConfig.auto,updated_at:new Date().toISOString()});
+ if(error){console.error('공유 AI 설정 저장 실패',error);$('#aiStatus').textContent='공유 저장 실패: '+error.message;toast('공유 저장 실패: '+error.message);return false;}
+ $('#aiStatus').textContent='저장 완료. 두 계정 모두 이 설정을 사용합니다.';return true;
+}
+async function loadSharedAI(){
+ if(!authUser||sharedAIBusy)return;
+ sharedAIBusy=true;
+ try{
+  const {data,error}=await sb.from('app_settings').select('openrouter_key,openrouter_model,ai_auto').eq('id',1).maybeSingle();
+  if(error)throw error;
+  if(!data||!data.openrouter_key)return;
+  const editing=aiDirty||['aiKey','aiModel'].includes(document.activeElement&&document.activeElement.id);
+  if(editing)return;
+  $('#aiKey').value=data.openrouter_key;
+  $('#aiModel').value=data.openrouter_model||'openai/gpt-4o-mini';
+  $('#aiAuto').checked=!!data.ai_auto;
+  aiConfig={key:data.openrouter_key,model:data.openrouter_model||'openai/gpt-4o-mini',auto:!!data.ai_auto};
+  localStorage.setItem(aiConfigKey,JSON.stringify(aiConfig));
+  $('#aiStatus').textContent='공유된 AI 설정을 불러왔습니다.';
+ }catch(err){console.warn('공유 AI 설정 불러오기 실패',err)}
+ finally{sharedAIBusy=false}
+}
+['aiKey','aiModel'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',function(){aiDirty=true;});});
+var aiAutoEl=document.getElementById('aiAuto');if(aiAutoEl)aiAutoEl.addEventListener('change',function(){aiDirty=true;});
+setInterval(loadSharedAI,5000);setTimeout(loadSharedAI,1500);
 function recentContext(){return trpgState.feed.slice(0,12).reverse().map(x=>`[${x.time}] ${x.title}: ${x.body}`).join('\n')||'아직 진행 기록이 없습니다.'}
 function dzApplyKpState(raw){
  const m=/\[\[STATE\]\]([\s\S]*?)\[\[\/STATE\]\]/.exec(raw);
