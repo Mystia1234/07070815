@@ -434,10 +434,30 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function toast(t){let e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
 let pageTrail=['start'];
-function go(page,skipTrail=false){const current=$('.page').find(p=>p.classList.contains('active'))?.id.replace('page-','');if(current&&current!==page&&!skipTrail){pageTrail.push(current);if(pageTrail.length>30)pageTrail.shift();}$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));window.scrollTo({top:0,behavior:'instant'});}
-function goBack(){const current=$('.page').find(p=>p.classList.contains('active'))?.id.replace('page-','');let previous=pageTrail.pop();while(previous===current&&pageTrail.length)previous=pageTrail.pop();if(!previous)previous='start';go(previous,true);}
-$('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
-$('.page').forEach(page=>{if(page.id==='page-start')return;const head=page.querySelector('.content-head');if(!head||page.querySelector('.page-backbar'))return;const bar=document.createElement('div');bar.className='page-backbar';bar.innerHTML='<button type="button" class="page-back" onclick="goBack()">← 뒤로가기</button><span class="page-back-hint">이전 화면으로 돌아갑니다</span>';page.insertBefore(bar,head);});
+function go(page,skipTrail=false){
+ const current=$$('.page').find(p=>p.classList.contains('active'))?.id.replace('page-','');
+ if(current&&current!==page&&!skipTrail){pageTrail.push(current);if(pageTrail.length>30)pageTrail.shift();}
+ $$('.nav button').forEach(button=>button.classList.toggle('active',button.dataset.page===page));
+ $$('.page').forEach(panel=>panel.classList.toggle('active',panel.id==='page-'+page));
+ window.scrollTo({top:0,behavior:'auto'});
+}
+function goBack(){
+ const current=$$('.page').find(p=>p.classList.contains('active'))?.id.replace('page-','');
+ let previous=pageTrail.pop();
+ while(previous===current&&pageTrail.length)previous=pageTrail.pop();
+ if(!previous)previous='start';
+ go(previous,true);
+}
+$$('.nav button').forEach(button=>button.addEventListener('click',()=>go(button.dataset.page)));
+$$('.page').forEach(page=>{
+ if(page.id==='page-start')return;
+ const head=page.querySelector('.content-head');
+ if(!head||page.querySelector('.page-backbar'))return;
+ const bar=document.createElement('div');
+ bar.className='page-backbar';
+ bar.innerHTML='<button type="button" class="page-back" onclick="goBack()">← 뒤로가기</button><span class="page-back-hint">이전 화면으로 돌아갑니다</span>';
+ page.insertBefore(bar,head);
+});
 
 function imageMarkup(p,letter){return p.img?`<img src="${p.img}" alt="생존자 초상화">`:letter}
 function renderProfiles(){
