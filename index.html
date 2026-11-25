@@ -1359,6 +1359,7 @@ const origApply=applyLiveEvent;
 applyLiveEvent=function(ev){
  if(ev&&ev.type==='world'){applyWorld(ev.payload);return;}
  if(ev&&ev.type==='items'){applyItemsRemote(ev.payload);return;}
+ if(ev&&ev.type==='lore'){applyLoreRemote(ev.payload);return;}
  return origApply(ev);
 };
 
@@ -1484,33 +1485,115 @@ dzApplyKpState=function(raw){
   }catch(err){console.warn('KP 상태 블록 해석 실패',err);}
  }
  renderSurvivorLocations();
- return clean.trim()||String(raw);
+ clean=clean.replace(/<think>[\s\S]*?<\/think>/g,'').replace(/\[\[(?:STATE|ITEMS|TIME)\]\][\s\S]*$/,'').trim();
+ return clean||'(KP가 장면 묘사를 생략했습니다. 한 번 더 진행을 요청해 주세요.)';
 };
 
-// ── AI KP 호출: 시각/착의 전달 + 응답 후 시간 경과 ──
+// ── AI KP 호출 (세계관 + 안정화: 중복 호출 방지 / 타임아웃 / 재시도 / 오류 안내) ──
+const LORE_KEY='dz2_lore';
+const DEFAULT_LORE=`■ 세계관
+- 현대(2026년) 대한민국의 도시 지역에서 갑작스러운 좀비 사태가 발생한 세계다. 오늘은 사태 발생 첫날이다. 구체적인 도시·지명은 플레이어가 정하기 전까지 특정하지 않는다.
+- 스마트폰·인터넷·전기·수도·차량 같은 현대 문명이 아직 남아 있지만 빠르게 무너지는 중이다. 통신은 불안정하고, 휴대전화 배터리와 전력이 큰 제약이 된다.
+- 감염자(좀비)는 사람을 공격하며 소리와 움직임에 민감하다. 물리거나 체액에 노출되면 감염될 수 있다. 사태의 원인, 치료법, 정부·군의 대응은 아직 아무도 모르며, KP는 단정하지 말고 단서·소문·방송으로만 흘린다.
+- 총기는 일반인이 거의 구할 수 없고, 무기는 생활 도구(야구방망이, 렌치, 소화기 등)가 중심이다. 한 번에 여러 마리를 상대하는 것은 매우 위험하다.
+- 초자연적·괴물적 요소는 시스템이 따로 사건으로 제시하기 전에는 쓰지 않는다. 기본은 현실적인 좀비 재난 생존물이다.
+- 다른 생존자(NPC)는 각자의 사정과 공포, 거짓말을 가진 평범한 현대인이다. 선의와 악의가 모두 있을 수 있다.
+■ 분위기 / 수위
+- 긴장감 있는 현실 생존 호러. 잔혹 묘사는 상업 좀비 영화 수준으로 하고, 신체 훼손의 과도한 세부 묘사와 성적 묘사는 하지 않는다.`;
+let lore={text:DEFAULT_LORE,at:0};
+try{const l=JSON.parse(localStorage.getItem(LORE_KEY)||'null');if(l&&typeof l.text==='string'&&l.text.trim())lore=l;}catch(e){}
+function applyLoreRemote(pl){
+ if(!pl||typeof pl.text!=='string'||!pl.text.trim())return;
+ if((pl.at||0)<lore.at)return;
+ lore={text:pl.text,at:pl.at||Date.now()};localStorage.setItem(LORE_KEY,JSON.stringify(lore));
+ const ta=document.getElementById('dzLoreText');if(ta&&document.activeElement!==ta)ta.value=lore.text;
+}
+(function mountLoreCard(){
+ const mount=document.getElementById('dzSettingsMount');if(!mount)return;
+ const card=document.createElement('div');card.className='card';
+ card.innerHTML='<div class="card-head"><span>세계관 / KP 규칙</span><small>두 기기 공유</small></div><div class="card-body"><textarea class="field" id="dzLoreText" rows="12" maxlength="3000"></textarea><div class="row" style="margin-top:8px"><button class="btn" id="dzLoreSave" type="button">세계관 저장</button><button class="btn secondary" id="dzLoreReset" type="button">기본값 복원</button></div><div class="hint" id="dzLoreStatus">저장하면 AI KP가 다음 진행부터 이 설정을 따릅니다. (최대 3000자)</div></div>';
+ mount.appendChild(card);
+ const ta=card.querySelector('#dzLoreText'),st=card.querySelector('#dzLoreStatus');ta.value=lore.text;
+ const commit=t=>{lore={text:t,at:Date.now()};localStorage.setItem(LORE_KEY,JSON.stringify(lore));publishLiveEvent('lore',lore);};
+ card.querySelector('#dzLoreSave').onclick=()=>{const t=ta.value.trim();if(!t){st.textContent='내용이 비어 있습니다.';return;}commit(t);st.textContent='저장 완료 · 두 기기에 공유됩니다.';};
+ card.querySelector('#dzLoreReset').onclick=()=>{if(!confirm('세계관을 기본값으로 되돌릴까요?'))return;ta.value=DEFAULT_LORE;commit(DEFAULT_LORE);st.textContent='기본값으로 복원했습니다.';};
+})();
+
+recentContext=function(){
+ const f=trpgState.feed.slice(0,10);let aiSeen=false;
+ return f.map(x=>{let lim=350;if(!aiSeen&&String(x.title).startsWith('AI KP')){lim=1400;aiSeen=true;}return `[${x.time}] ${x.title}: ${String(x.body).slice(0,lim)}`}).reverse().join('\n')||'아직 진행 기록이 없습니다.';
+};
+function recentChatText(){return dzChatHistory.filter(m=>!m.ai).slice(-6).map(m=>`${m.name}: ${String(m.text).slice(0,200)}`).join('\n')||'없음';}
+const compactSurv=x=>({HP:x.hp+'/'+x.maxHp,SAN:x.san+'/'+x.maxSan,허기:x.hunger,갈증악화:x.thirst,피로:x.fatigue,출혈:!!x.bleeding,감염의심:x.infect+'%',부상:x.injuries,이상상태:x.conditions,상태:!x.alive?'사망':x.down?'빈사':'생존'});
+
+let aiBusy=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function orError(status,msg){
+ if(status===401)return 'API 키가 올바르지 않거나 만료되었습니다. 설정에서 키를 확인해 주세요.';
+ if(status===402)return 'OpenRouter 크레딧이 부족합니다. 충전 후 다시 시도해 주세요.';
+ if(status===403)return '이 키로는 해당 모델에 접근할 수 없습니다. ('+msg+')';
+ if(status===404)return '모델 ID를 찾을 수 없습니다. 설정의 모델 ID를 확인해 주세요. ('+msg+')';
+ if(status===429)return '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.';
+ return msg||('OpenRouter 오류 '+status);
+}
+async function orChat(payload,key){
+ let lastErr=null;
+ for(let attempt=0;attempt<3;attempt++){
+  const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),60000);
+  try{
+   const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',signal:ctrl.signal,headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json','HTTP-Referer':location.href,'X-Title':'DEAD ZONE TRPG'},body:JSON.stringify(payload)});
+   const text=await res.text();let data=null;try{data=JSON.parse(text)}catch(e){}
+   if(res.ok&&data&&!data.error)return data;
+   const status=Number(res.ok?(data?.error?.code||500):res.status)||500;
+   const err=new Error(orError(status,data?.error?.message||(data?'':'서버가 올바르지 않은 응답을 보냈습니다.')));err.final=true;
+   if([408,429,500,502,503,504].includes(status)&&attempt<2){lastErr=err;await sleep(1500*(attempt+1));continue;}
+   throw err;
+  }catch(err){
+   if(err.final)throw err;
+   const e2=err.name==='AbortError'?new Error('응답 시간이 초과되었습니다(60초). 다른 모델을 시도해 보세요.'):new Error('네트워크 오류로 OpenRouter에 연결하지 못했습니다.');
+   lastErr=e2;if(attempt<2){await sleep(1500*(attempt+1));continue;}throw e2;
+  }finally{clearTimeout(to)}
+ }
+ throw lastErr||new Error('OpenRouter 요청에 실패했습니다.');
+}
+
+const KP_BASE=`너는 한국어 2인용 좀비 TRPG의 KP(게임 진행자)다. 플레이어 캐릭터의 대사·선택·행동·감정을 대신 결정하지 마라. 성공/실패 판정은 이미 코드가 처리했으므로 뒤집지 마라. 장면 묘사, NPC 대사, 감각적 단서, 선택 가능한 행동을 2~5문단으로 제시하라. HP·정신력·감염 같은 수치 변화는 시스템이 처리하므로 숫자를 단정하지 말고, 캐릭터를 임의로 죽이거나 감염시키거나 큰 부상을 입히지 말고 위험을 예고하거나 판정을 유도하라. 기존 설정·진행 기록과 모순되지 않게 하고, 규칙 설명 대신 장면에 집중하라. 반드시 한국어로만 답하라. 현재 게임 시각이 주어지므로 시간대(밤이면 어둡고 시야가 나쁘다, 해가 뜨면 밝아진다)를 묘사에 반영하라.`;
+const KP_FORMAT=`[응답 형식] 장면 서술을 먼저 쓰고, 맨 끝에 아래 블록들을 서술과 섞지 말고 따로 붙여라.
+(1) 이번 장면에서 흐른 시간(분 단위 정수): [[TIME]]15[[/TIME]] — 대화·관찰 2~10분, 이동·수색·치료 10~40분, 먼 거리 이동 40~90분, 수면·장시간 휴식 최대 480분.
+(2) 위치/행동/착의 갱신: [[STATE]]{"a":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"},"b":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"}}[[/STATE]] a는 HO1, b는 HO2다. 장소는 안전지대, 주거 지역, 편의점, 병원, 지하철역, 경찰서, 주유소, 옥상, 물류 창고, 학교, 야외 도로 중 가장 가까운 것이나 짧은 장소명을 쓴다. 두 사람이 따로 움직이면 서로 다른 장소를, 합류하면 같은 장소를 쓴다. 바뀌지 않은 사람은 현재 값을 그대로 유지한다. 행동은 20자 이내, 착의는 25자 이내. 옷을 갈아입거나 젖거나 찢기거나 피가 묻는 등 변화가 있을 때만 착의를 갱신한다.
+(3) 소지품이 늘거나 줄었을 때만(없으면 생략): [[ITEMS]]{"add":[{"name":"생수","qty":"2개","owner":"shared"}],"use":[{"name":"생수","qty":1,"who":"a","hunger":0,"thirst":4,"hp":0}]}[[/ITEMS]] add는 플레이어가 장면에서 실제로 입수한 물건이며 판정에 실패했거나 확정되지 않은 것은 넣지 마라. owner는 a(HO1 개인)/b(HO2 개인)/shared(공동). use는 플레이어가 실제로 소모·사용·버린 물건이며 주어진 소지품 목록에 있는 이름만 쓴다. who는 사용한 사람(a/b), hunger(허기 회복 0~45)·thirst(갈증 회복 0~5)·hp(체력 회복 0~5)는 음식·물·의약품일 때만 현실적으로 정한다. 소지품에 없는 물건을 쓰려 하면 use에 넣지 말고 장면에서 없다고 묘사하라.`;
+
 callAI=async function(extra=''){
+ if(aiBusy){toast('AI KP가 이전 장면을 진행 중입니다. 잠시 후 다시 시도해 주세요.');return null}
  aiConfig={key:$('#aiKey').value.trim(),model:$('#aiModel').value.trim()||'openai/gpt-4o-mini',auto:$('#aiAuto').checked};
- if(!aiConfig.key){toast('상태 / 판정 메뉴에서 OpenRouter API 키를 먼저 저장해 주세요.');$('#aiStatus').textContent='API 키가 비어 있습니다.';return null}
+ if(!aiConfig.key){toast('설정 메뉴에서 OpenRouter API 키를 먼저 저장해 주세요.');$('#aiStatus').textContent='API 키가 비어 있습니다.';return null}
  localStorage.setItem(aiConfigKey,JSON.stringify(aiConfig));
+ aiBusy=true;
  const button=$('#aiContinue');button.disabled=true;button.textContent='AI KP 진행 중…';$('#aiStatus').textContent='AI KP가 현재 상황을 정리하고 있습니다…';
- const ti=timeInfo();
- const stats=`A: ${JSON.stringify(trpgState.stats.a)} / B: ${JSON.stringify(trpgState.stats.b)}\n생존 상태 A: ${JSON.stringify(survival.a)}\n생존 상태 B: ${JSON.stringify(survival.b)}\n현재 위치: ${profiles.a?.name||'HO1'}=${survivorLocations.a}(${survivorActivities.a}, 착의: ${dzWorld.clothing.a}) / ${profiles.b?.name||'HO2'}=${survivorLocations.b}(${survivorActivities.b}, 착의: ${dzWorld.clothing.b}) / 단서: ${clues.slice(0,8).map(c=>c.text).join(' | ')}`;
- const system=`너는 한국어 좀비 아포칼립스 2인용 TRPG의 KP(게임 진행자)다. 장르는 현실적이고 긴장감 있는 생존 호러다. 플레이어 캐릭터의 행동과 주사위 결과를 존중하고, 플레이어 캐릭터의 대사·선택·행동을 대신 결정하지 마라. 성공/실패 판정은 이미 코드가 처리했으므로 뒤집지 마라. 상황 묘사와 NPC 대사, 감각적 단서, 선택 가능한 행동을 2~5문단으로 제시하라. 임의로 캐릭터를 죽이거나 감염시키지 말고, 큰 변화는 위험을 예고하거나 판정으로 처리하도록 유도하라. 기존 설정과 모순되지 않게 진행하라. 규칙 설명보다 장면에 집중하라. 현재 게임 시각이 주어지므로 시간대(밤이면 어둡고 시야가 나쁘다, 해가 뜨면 밝아진다)를 묘사에 반영하라. 응답의 맨 끝에 반드시 두 블록을 붙여라. (1) 이번 장면에서 흐른 시간을 분 단위 정수로: [[TIME]]15[[/TIME]] — 대화·관찰은 2~10분, 이동·수색·치료는 10~40분, 먼 거리 이동은 40~90분, 수면·장시간 휴식은 최대 480분. (2) 위치/행동/착의 갱신 블록 한 줄: [[STATE]]{"a":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"},"b":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"}}[[/STATE]] a는 HO1, b는 HO2다. 장소는 안전지대, 주거 지역, 편의점, 병원, 지하철역, 경찰서, 주유소, 옥상, 물류 창고, 학교, 야외 도로 중 가장 가까운 것이나 짧은 장소명을 쓴다. 두 사람이 따로 움직이면 서로 다른 장소를 쓰고, 합류하면 같은 장소를 쓴다. 이번 장면에서 바뀌지 않은 사람은 현재 위치를 그대로 유지한다. 행동은 20자 이내, 착의는 25자 이내로 쓴다. 옷을 갈아입거나 젖거나 찢기거나 피가 묻는 등 변화가 있을 때만 착의를 갱신하고, 아니면 주어진 현재 착의를 그대로 쓴다. (3) 이번 장면에서 소지품이 늘거나 줄었을 때만(없으면 생략) 블록을 추가로 붙여라: [[ITEMS]]{"add":[{"name":"생수","qty":"2개","owner":"shared"}],"use":[{"name":"생수","qty":1,"who":"a","hunger":0,"thirst":4,"hp":0}]}[[/ITEMS]] add는 플레이어가 장면에서 실제로 입수한 물건(발견·획득·건네받음)이며, 판정에 실패했거나 아직 확정되지 않은 것은 넣지 마라. owner는 a(HO1 개인)/b(HO2 개인)/shared(공동)이고, 혼자 챙기면 그 사람, 함께 쓸 물자는 shared로 한다. use는 플레이어가 실제로 소모·사용·버린 물건이며 주어진 소지품 목록에 있는 이름만 쓴다. who는 사용한 사람(a/b), hunger(허기 회복 0~45)·thirst(갈증 회복 0~5)·hp(체력 회복 0~5)는 음식·물·의약품일 때만 현실적으로 정한다. 소지품에 없는 물건을 쓰려 하면 use에 넣지 말고 장면에서 없다고 묘사하라.`;
- const user=`현재 세계: 2026년 11월 25일 좀비 사태 발생 첫날. 두 생존자가 함께 생존 중이다.\n현재 게임 시각: ${ti.full} (${ti.part})\n소지품: ${inventoryText()}\n능력치: ${stats}\n최근 진행 기록:\n${recentContext()}\n\n행동 중인 플레이어: ${survName(sender)} (${sender==='a'?'HO1':'HO2'})\n플레이어의 추가 행동/지시: ${extra||'직전 기록을 바탕으로 다음 장면을 진행해 줘.'}\n\nKP로서 다음 장면을 자연스럽게 진행해 줘.`;
  try{
-  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+aiConfig.key,'Content-Type':'application/json','HTTP-Referer':location.href,'X-Title':'DEAD ZONE TRPG'},body:JSON.stringify({model:aiConfig.model,messages:[{role:'system',content:system},...aiHistory.slice(-10),{role:'user',content:user}],temperature:0.85,max_tokens:1100})});
-  const data=await res.json();if(!res.ok)throw new Error(data.error?.message||`OpenRouter 오류 ${res.status}`);
-  let answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error('AI 응답 내용이 비어 있습니다. 모델 ID를 확인해 주세요.');
+  const ti=timeInfo();
+  const stats=`A 능력치: ${JSON.stringify(trpgState.stats.a)}\nB 능력치: ${JSON.stringify(trpgState.stats.b)}`;
+  const state=`A 상태: ${JSON.stringify(compactSurv(survival.a))}\nB 상태: ${JSON.stringify(compactSurv(survival.b))}`;
+  const where=`${profiles.a?.name||'HO1'}(a)=${survivorLocations.a}/${survivorActivities.a}/착의:${dzWorld.clothing.a} · ${profiles.b?.name||'HO2'}(b)=${survivorLocations.b}/${survivorActivities.b}/착의:${dzWorld.clothing.b}`;
+  const system=KP_BASE+'\n\n[세계관 설정]\n'+String(lore.text).slice(0,3000)+'\n\n'+KP_FORMAT;
+  const user=`현재 세계: 2026년 11월 25일 좀비 사태 발생 첫날. 두 생존자가 함께 생존 중이다.\n현재 게임 시각: ${ti.full} (${ti.part})\n현재 위치/행동/착의: ${where}\n단서: ${clues.slice(0,8).map(c=>c.text).join(' | ')||'없음'}\n소지품: ${inventoryText()}\n${stats}\n${state}\n\n최근 진행 기록:\n${recentContext()}\n\n최근 플레이어 발언:\n${recentChatText()}\n\n행동 중인 플레이어: ${survName(sender)} (${sender==='a'?'HO1':'HO2'})\n플레이어의 추가 행동/지시: ${extra||'직전 기록을 바탕으로 다음 장면을 진행해 줘.'}\n\nKP로서 다음 장면을 자연스럽게 진행해 줘.`;
+  const data=await orChat({model:aiConfig.model,messages:[{role:'system',content:system},...aiHistory.slice(-4),{role:'user',content:user}],temperature:0.85,max_tokens:1500},aiConfig.key);
+  const choice=data.choices?.[0];
+  let raw=choice?.message?.content;if(Array.isArray(raw))raw=raw.map(x=>x.text||'').join('');
+  raw=String(raw||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+  if(!raw)throw new Error('AI 응답이 비어 있습니다. 모델 ID나 크레딧을 확인해 주세요.');
   pendingMinutes=null;
-  answer=dzApplyKpState(answer);
+  const answer=dzApplyKpState(raw);
   const mins=pendingMinutes!=null?pendingMinutes:estimateMinutes(extra);pendingMinutes=null;
   dzWorld.minutes+=mins;
-  aiHistory.push({role:'user',content:user},{role:'assistant',content:answer});aiHistory=aiHistory.slice(-20);localStorage.setItem(aiHistoryKey,JSON.stringify(aiHistory));
+  aiHistory.push({role:'user',content:'['+survName(sender)+'] '+(extra||'진행 요청')},{role:'assistant',content:raw.slice(0,2500)});aiHistory=aiHistory.slice(-8);localStorage.setItem(aiHistoryKey,JSON.stringify(aiHistory));
   pushFeed('AI KP · 장면 진행',answer,'OpenRouter · '+aiConfig.model+' · '+timeInfo().full+' (+'+mins+'분)');
   renderSurvivorLocations();publishWorld();
-  $('#aiStatus').textContent='AI KP 연결 성공 · 방금 장면을 기록했습니다. (+'+mins+'분)';$('#aiPrompt').value='';return answer;
- }catch(err){$('#aiStatus').textContent='연결 실패: '+err.message;toast('AI 연결에 실패했습니다. API 키와 모델을 확인해 주세요.');return null}
- finally{button.disabled=false;button.textContent='AI KP에게 진행 요청'}
+  $('#aiStatus').textContent='AI KP 연결 성공 · 방금 장면을 기록했습니다. (+'+mins+'분)'+(choice?.finish_reason==='length'?' · 응답이 길어 일부 잘렸을 수 있어요':'');
+  $('#aiPrompt').value='';return answer;
+ }catch(err){
+  $('#aiStatus').textContent='연결 실패: '+err.message;toast('AI 오류: '+err.message);return null;
+ }finally{aiBusy=false;button.disabled=false;button.textContent='AI KP에게 진행 요청'}
 };
 
 // ── 시작 인트로: FIELD LOG 맨 위에 고정 표시 (피드 개수 제한/초기화와 무관하게 항상 보임) ──
@@ -1543,6 +1626,9 @@ document.addEventListener('click',async e=>{
  await publishWorld({reset:true});
  toast('초기화 완료 · DAY 01 18:00부터 다시 시작합니다.');
 },true);
+
+const origSnap=saveSnapshot;
+saveSnapshot=function(){const d=origSnap();['dz2_world','dz2_lore','dz2_field_chat'].forEach(k=>{const v=localStorage.getItem(k);if(v!==null)d.values[k]=v});return d;};
 
 renderSurvivorLocations();
 })();
