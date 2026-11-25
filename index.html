@@ -381,7 +381,33 @@ a{color:#111!important}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s); const $=s=>[...document.querySelectorAll(s)];
+document.addEventListener('click',function(e){
+ const button=e.target.closest('#enterSiteButton,#gateSaveProfile,#startGameButton,#editProfileButton,#lobbyLogoutButton');
+ if(!button)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ try{
+  if(button.id==='enterSiteButton'){
+   if(!currentRole)return;
+   if(lobbyState.gameStarted){$('#profileGate').classList.remove('show');go(profileReturnPage||'start');}
+   else enterLobby();
+  }else if(button.id==='gateSaveProfile'){
+   if(!currentRole)return;
+   saveMyProfile($('#gateName').value,$('#gateBio').value);
+   $('#gateSavedHint').textContent='프로필 저장 완료.';
+   $('#enterSiteButton').disabled=false;toast('프로필이 저장되었습니다.');
+  }else if(button.id==='startGameButton'){
+   if(!bothReady()||!currentRole)return;
+   lobbyState.gameStarted=true;persistLobby();renderLobby();enterGame();
+  }else if(button.id==='editProfileButton'){
+   if(!currentRole)return;
+   if(lobbyState.gameStarted){openOwnProfileEditor();return;}
+   const k=roleKey();lobbyState[k]={ready:false,joinedAt:null};persistLobby();
+   $('#lobbyScreen').classList.remove('show');showProfileGate();renderLobby();
+  }else if(button.id==='lobbyLogoutButton'){logout();}
+ }catch(err){console.error('Lobby control error:',err);const box=$('#lobbyMessage');if(box)box.textContent='버튼 처리 오류: '+(err.message||err);toast('버튼 처리 중 오류가 발생했습니다.');}
+},true);
+
 const keys=['dz2_profiles','dz2_messages','dz2_logs','dz2_items'];
 let profiles=JSON.parse(localStorage.getItem(keys[0])||'null')||{a:{name:'생존자 1',bio:'',img:''},b:{name:'생존자 2',bio:'',img:''}};
 ['a','b'].forEach(k=>{const fallback=k==='a'?'생존자 1':'생존자 2';if(profiles[k] && !profiles[k].saved && ((profiles[k].name&&profiles[k].name!==fallback)||profiles[k].bio||profiles[k].img))profiles[k].saved=true;});
