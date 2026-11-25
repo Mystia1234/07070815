@@ -535,12 +535,12 @@ function renderSurvivorLocations(){
  const loc=document.getElementById('currentLocation');if(loc)loc.textContent=currentLocation;
  if(scene)scene.textContent=currentLocation==='안전지대'?'낡은 건물 안은 고요하다. 먼지 쌓인 창문 너머로 텅 빈 도로가 보인다. 멀리서 금속을 긁는 소리가 들려온다.':currentLocation+'에 도착했다. 주변을 살피자. 어디선가 희미한 소음이 들린다.';
 }
-let currentRole=null;
+let currentRole=null;let profileReturnPage='start';async function safeLoadCloud(){try{await loadCloudData();}catch(e){console.error('서버 기록 불러오기 실패',e);toast('서버 기록을 불러오지 못했습니다: '+(e.message||e));}}
 const SUPABASE_URL='https://jpwxodxuzfljoticxukw.supabase.co';
 const SUPABASE_KEY='sb_publishable_zWbMZSoHLzdLIA5paRcaag_78JE2Aoo';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const accountForRole=role=>({role,character:role==='ho1'?'a':'b',label:role.toUpperCase()});
-const emailForId=id=>{const v=String(id||'').trim().toLowerCase();if(v==='ho1@deadzone.local'||v==='ho11111')return 'ho1@deadzone.local';if(v==='ho2@deadzone.local'||v==='ho22222')return 'ho2@deadzone.local';return null;};
+const emailForId=id=>{const v=String(id||'').trim().toLowerCase();if(v==='ho1'||v==='ho1@deadzone.local'||v==='ho11111')return 'ho1@deadzone.local';if(v==='ho2'||v==='ho2@deadzone.local'||v==='ho22222')return 'ho2@deadzone.local';return null;};
 let authUser=null;
 // 능력치 잠금 상태는 로그인/세션 복원보다 먼저 초기화
 var statsLocked={a:false,b:false};
@@ -574,14 +574,14 @@ function applyLogin(account){
  const own=account.character;
  // 인증이 끝나면 로그인 레이어를 먼저 닫아 다음 화면을 가리지 않도록 한다.
  const loginLayer=$('#loginScreen'),profileLayer=$('#profileGate'),lobbyLayer=$('#lobbyScreen');
- loginLayer.style.setProperty('display','none','important');
+ loginLayer.style.display='none';profileLayer.style.removeProperty('display');lobbyLayer.style.removeProperty('display');
  if(lobbyState[own]?.ready){
-  profileLayer.classList.remove('show');profileLayer.style.setProperty('display','none','important');
-  lobbyLayer.classList.add('show');lobbyLayer.style.setProperty('display','grid','important');
+  profileLayer.classList.remove('show');
+  lobbyLayer.classList.add('show');
   renderLobby();if(lobbyState.gameStarted)enterGame();
  }else{
-  lobbyLayer.classList.remove('show');lobbyLayer.style.setProperty('display','none','important');
-  profileLayer.classList.add('show');profileLayer.style.setProperty('display','grid','important');
+  lobbyLayer.classList.remove('show');
+  profileLayer.classList.add('show');
   showProfileGate();
  }
 }
@@ -601,7 +601,7 @@ $('#loginForm').addEventListener('submit',async e=>{
   const role=email.startsWith('ho1@')?'ho1':'ho2';
   phase='서버 기록 불러오기';
   status.textContent='② 계정 인증 완료. 서버 기록을 불러오는 중…';
-  await loadCloudData();
+  await safeLoadCloud();
   phase='화면 전환';
   status.textContent='③ 서버 연결 완료. 화면을 여는 중…';
   applyLogin(accountForRole(role));
@@ -618,7 +618,7 @@ $('#loginForm').addEventListener('submit',async e=>{
 });
 async function logout(){if(currentRole && !lobbyState.gameStarted){const k=myCharacter();lobbyState[k]={ready:false,joinedAt:null};persistLobby();if(authUser)await sb.from('survivors').update({is_ready:false}).eq('id',authUser.id);}await sb.auth.signOut();authUser=null;document.body.classList.remove('logged-in');$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.remove('show');$('#loginScreen').style.display='grid';$('#loginId').value='';$('#loginPassword').value='';$('#loginError').textContent='';currentRole=null;}
 $('#logoutButton').addEventListener('click',logout);
-async function restoreAuth(){try{const {data}=await sb.auth.getSession();if(data.session){authUser=data.session.user;await loadCloudData();const role=authUser.email==='ho1@deadzone.local'?'ho1':'ho2';applyLogin(accountForRole(role));}}catch(err){console.error('세션 복원 실패',err)}}restoreAuth();
+async function restoreAuth(){try{const {data}=await sb.auth.getSession();if(data.session){authUser=data.session.user;await safeLoadCloud();const role=authUser.email==='ho1@deadzone.local'?'ho1':'ho2';applyLogin(accountForRole(role));}}catch(err){console.error('세션 복원 실패',err)}}restoreAuth();
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(t){let e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
@@ -783,7 +783,7 @@ async function loadCloudData(){
   });
   const {data:gs,error:ge}=await sb.from('game_state').select('*').eq('id',1).maybeSingle();
   if(ge)throw ge;
-  if(gs){lobbyState.gameStarted=!!gs.game_started;currentLocation=gs.current_location||currentLocation;if($('#heroLocation'))$('#heroLocation').textContent=currentLocation;if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($('#dayLabel'))$('#dayLabel').textContent=gs.current_day===1?'첫째 날':gs.current_day+'일차';}
+  if(gs){lobbyState.gameStarted=lobbyState.gameStarted||!!gs.game_started;currentLocation=gs.current_location||currentLocation;if($('#heroLocation'))$('#heroLocation').textContent=currentLocation;if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($('#dayLabel'))$('#dayLabel').textContent=gs.current_day===1?'첫째 날':gs.current_day+'일차';}
   save(keys[0],profiles);persistLobby();renderProfiles();renderLobby();
   startLiveSync();
  }finally{cloudSyncBusy=false}
@@ -793,7 +793,7 @@ async function syncProfileToCloud(k){
  const p=profiles[k];
  const {data,error}=await sb.from('survivors').update({
   character_name:p.name,appearance:p.bio,avatar_data:p.img||null,
-  last_seen_at:new Date().toISOString(),is_ready:false,updated_at:new Date().toISOString()
+  last_seen_at:new Date().toISOString(),...(lobbyState.gameStarted?{}:{is_ready:false}),updated_at:new Date().toISOString()
  }).eq('id',authUser.id).select('id,avatar_data').maybeSingle();
  if(error)throw error;
  if(!data?.id)throw new Error('서버에서 프로필을 수정하지 못했습니다. Supabase survivors UPDATE 권한을 확인해 주세요.');
@@ -814,7 +814,7 @@ async function refreshCloudLobby(){
    lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
   });
   const {data:gs}=await sb.from('game_state').select('current_day,current_location,game_started').eq('id',1).maybeSingle();
-  if(gs){lobbyState.gameStarted=!!gs.game_started;currentLocation=gs.current_location||currentLocation;if($('#heroLocation'))$('#heroLocation').textContent=currentLocation;if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($('#dayLabel'))$('#dayLabel').textContent=gs.current_day===1?'첫째 날':gs.current_day+'일차';}
+  if(gs){lobbyState.gameStarted=lobbyState.gameStarted||!!gs.game_started;currentLocation=gs.current_location||currentLocation;if($('#heroLocation'))$('#heroLocation').textContent=currentLocation;if($('#currentLocation'))$('#currentLocation').textContent=currentLocation;if($('#dayLabel'))$('#dayLabel').textContent=gs.current_day===1?'첫째 날':gs.current_day+'일차';}
   const online=(rows||[]).filter(r=>r.last_seen_at && Date.now()-new Date(r.last_seen_at).getTime()<60000).length;if($('#onlineCount'))$('#onlineCount').textContent='접속자 '+online+'/2명';
   save(keys[0],profiles);persistLobby();renderProfiles();renderLobby();
   if(lobbyState.gameStarted&&bothReady()&&$('#lobbyScreen').classList.contains('show'))enterGame();
@@ -911,7 +911,7 @@ $('#rpV2Form').addEventListener('submit',async e=>{
  if(!authUser){rpWriteStatus('로그인 연결이 없습니다.',true);return;}
  const profile=profiles[sender]||{};
  const message={character:sender,name:profile.name||(sender==='a'?'HO1':'HO2'),text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false})};
- rpV2Sending=true;const button=$('#chatForm button[type="submit"]');button.disabled=true;button.textContent='저장 중…';
+ rpV2Sending=true;const button=$('#rpV2Form button[type="submit"]');button.disabled=true;button.textContent='저장 중…';
  try{
   await rpV2Write('message',message);
   input.value='';rpWriteStatus('서버 저장 성공');await rpV2Refresh();
@@ -1022,7 +1022,7 @@ $('#editProfileButton').addEventListener('click',()=>{
 $('#lobbyLogoutButton').addEventListener('click',logout);
 $('#startGameButton').addEventListener('click',()=>{
  if(!bothReady()||!currentRole)return;
- lobbyState.gameStarted=true;persistLobby();renderLobby();enterGame();
+ lobbyState.gameStarted=true;persistLobby();renderLobby();sb.from('game_state').update({game_started:true}).eq('id',1).then(({error})=>{if(error){console.error(error);toast('게임 시작 상태 서버 저장 실패: '+error.message)}});enterGame();
 });
 function syncLobby(){
  const raw=localStorage.getItem(lobbyKey);
@@ -1052,7 +1052,7 @@ $('#logForm').addEventListener('submit',e=>{e.preventDefault();logs.push({date:'
 function renderItems(){const groups=[['shared','sharedItemList'],['a','personalItemListA'],['b','personalItemListB']];groups.forEach(([owner,id])=>{const box=$('#'+id);box.innerHTML='';const list=items.map((it,i)=>({it,i})).filter(x=>(x.it.owner||'shared')===owner);if(!list.length){box.innerHTML='<p class="notice">등록된 물건이 없습니다.</p>';return}list.forEach(({it,i})=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div class="ico">▣</div><b>${esc(it.name)}</b><small>${esc(it.qty||'수량 미정')}</small><button class="btn secondary" style="margin-top:8px;padding:5px 7px" data-remove="${i}">삭제</button>`;box.appendChild(d)});box.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{items.splice(+b.dataset.remove,1);save(keys[3],items);renderItems()}))})}
 renderItems();
 [['shared','sharedItemForm','sharedItemName','sharedItemQty'],['a','personalItemFormA','personalItemNameA','personalItemQtyA'],['b','personalItemFormB','personalItemNameB','personalItemQtyB']].forEach(([owner,formId,nameId,qtyId])=>$('#'+formId).addEventListener('submit',e=>{e.preventDefault();items.push({owner,name:$('#'+nameId).value.trim(),qty:$('#'+qtyId).value.trim()});save(keys[3],items);$('#'+nameId).value='';$('#'+qtyId).value='';renderItems();toast('소지품을 추가했습니다.')}));
-$('.zone').forEach(z=>z.addEventListener('click',()=>{const destination=z.dataset.zone;if(!confirm(destination+'(으)로 이동할까요? 이동 사실이 생존 기록에 남습니다.'))return;currentLocation=destination;survivorLocations[sender]=destination;saveSurvivorLocations();localStorage.setItem('dz2_current_location',currentLocation);renderSurvivorLocations();publishLiveEvent('location',{character:sender,location:destination});setSurvivorActivity(sender,'이동 완료 · '+destination);logs.push({date:'첫째 날 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),title:'이동 · '+destination,text:'현재 위치를 '+destination+'(으)로 변경했다.'});renderLogs();toast(destination+'(으)로 이동했습니다.');go('actions')}));
+$$('.zone').forEach(z=>z.addEventListener('click',()=>{const destination=z.dataset.zone;if(!confirm(destination+'(으)로 이동할까요? 이동 사실이 생존 기록에 남습니다.'))return;currentLocation=destination;survivorLocations[sender]=destination;saveSurvivorLocations();localStorage.setItem('dz2_current_location',currentLocation);renderSurvivorLocations();publishLiveEvent('location',{character:sender,location:destination});setSurvivorActivity(sender,'이동 완료 · '+destination);logs.push({date:'첫째 날 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),title:'이동 · '+destination,text:'현재 위치를 '+destination+'(으)로 변경했다.'});renderLogs();toast(destination+'(으)로 이동했습니다.');go('actions')}));
 // 행동 메뉴에서 선택한 행동은 현재 로그인한 생존자 이름으로 판정합니다.
 function launchAction(action,stat){const actor=$('#actionActor')?.value||myCharacter();const sel=$('#actorSelect');if(sel)sel.value=actor;doCheck(action,stat,actor);}
 $$('.action-shortcut').forEach(b=>b.addEventListener('click',()=>launchAction(b.dataset.action,b.dataset.stat)));
@@ -1122,7 +1122,7 @@ function doCheck(action,skill,actor){
  if(Math.random()<.28)randomEvent();
  if($('#aiAuto')?.checked)callAI(`${name}의 행동: ${action}. 판정 결과: ${result} (${skill} ${target}, 주사위 ${roll}). 이 결과를 반영해 장면을 진행해 줘.`);
 }
-$$('#page-trpg [data-action]').forEach(btn=>btn.addEventListener('click',()=>doCheck(btn.dataset.action,btn.dataset.stat,$('#actorSelect').value)));
+$$('#activity-trpg [data-action]').forEach(btn=>btn.addEventListener('click',()=>doCheck(btn.dataset.action,btn.dataset.stat,$('#actorSelect').value)));
 $('#freeAction').addEventListener('click',()=>{$('#freeActionBox').style.display=$('#freeActionBox').style.display==='none'?'block':'none'});
 $('#freeRoll').addEventListener('click',()=>{let action=$('#freeActionText').value.trim();if(!action){toast('행동을 먼저 입력해 주세요.');return}doCheck(action,$('#freeStat').value,$('#actorSelect').value);$('#freeActionText').value=''});
 function randomEvent(){let e=eventPool[Math.floor(Math.random()*eventPool.length)];trpgState.events++;let effect='';const k=myCharacter();if(['위험','공포'].includes(e[1])&&Math.random()<.28){applyDamage(k,d(3),'랜덤 사건으로 인한 부상');effect=' 사건의 여파로 부상을 입었다.'}else if(['초자연','변칙'].includes(e[1])){addSanLoss(k,d(3),'랜덤 사건의 기이한 현상');effect=' 정신력에 충격을 받았다.'}else if(e[1]==='환경'&&Math.random()<.4){survival[k].fatigue=clamp(survival[k].fatigue+1,0,10);renderSurvival();effect=' 환경 악화로 피로가 누적됐다.'}pushFeed(`무작위 사건 · ${e[1]}`,`${e[0]} ${e[2]}${effect}`,'확장 사건표 자동 추첨')}
