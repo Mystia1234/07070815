@@ -1297,4 +1297,208 @@ function tick(){$('#clock').textContent=new Date().toLocaleTimeString('ko-KR',{h
  </div>
 </div>
 
+<!-- DZ-PATCH 01 START -->
+<!-- ===== DEAD ZONE PATCH 01 : 게임 시각 / 착의 / 인트로 / 초기화 / 실시간 동기화 =====
+     붙여넣는 위치: 원본 index.html 맨 아래 </body> 바로 위 (기존 <script> 블록들 뒤)
+     원본 코드는 한 글자도 수정할 필요 없음. -->
+<style>
+.dz-location-row[data-k]{cursor:pointer}
+#dzWorldTime{font-weight:800}
+.dz-location-row i{font-style:normal;font-size:10px}
+</style>
+<script>
+(()=>{
+const WK='dz2_world',pad=n=>String(n).padStart(2,'0');
+const START=18*60,DEF_CLOTH='평상복';
+const freshWorld=()=>({minutes:START,clothing:{a:DEF_CLOTH,b:DEF_CLOTH},introDone:false,at:0});
+let dzWorld=null;
+try{dzWorld=JSON.parse(localStorage.getItem(WK)||'null')}catch(e){}
+if(!dzWorld||typeof dzWorld.minutes!=='number')dzWorld=freshWorld();
+dzWorld.clothing=Object.assign({a:DEF_CLOTH,b:DEF_CLOTH},dzWorld.clothing||{});
+dzWorld.at=dzWorld.at||0;
+let pendingMinutes=null,introBusy=false;
+const wsave=()=>localStorage.setItem(WK,JSON.stringify(dzWorld));
+
+function timeInfo(){
+ const m=Math.max(0,dzWorld.minutes),day=Math.floor(m/1440)+1,t=m%1440,h=Math.floor(t/60),mm=t%60;
+ const part=h<5?'깊은 밤':h<8?'새벽':h<12?'오전':h<17?'낮':h<20?'저녁':'밤';
+ return {day,text:pad(h)+':'+pad(mm),part,full:'DAY '+pad(day)+' · '+pad(h)+':'+pad(mm)};
+}
+function estimateMinutes(t){
+ t=String(t||'');
+ if(/잠|수면|숙면|눈을 붙/.test(t))return 240;
+ if(/휴식|쉬|앉아/.test(t))return 45;
+ if(/이동|걸어|달려|향한|간다|출발|도착/.test(t))return 20;
+ if(/수색|탐색|뒤진|조사|살핀|확인/.test(t))return 20;
+ if(/치료|응급|붕대/.test(t))return 15;
+ if(/싸|공격|도망|숨/.test(t))return 5;
+ if(/말|대화|묻|이야기/.test(t))return 8;
+ return 10;
+}
+
+// ── 서버 공유 (game_logs 이벤트 type:'world') ──
+function publishWorld(extra){
+ dzWorld.at=Date.now();wsave();
+ return publishLiveEvent('world',Object.assign({},dzWorld,{
+  locations:Object.assign({},survivorLocations),
+  activities:Object.assign({},survivorActivities)
+ },extra||{}));
+}
+function applyWorld(w){
+ if(!w||typeof w.minutes!=='number')return;
+ if((w.at||0)<dzWorld.at)return;
+ dzWorld.minutes=w.minutes;dzWorld.at=w.at||Date.now();dzWorld.introDone=!!w.introDone;
+ if(w.clothing)dzWorld.clothing=Object.assign({a:DEF_CLOTH,b:DEF_CLOTH},w.clothing);
+ if(w.locations){['a','b'].forEach(k=>{if(w.locations[k])survivorLocations[k]=w.locations[k]});saveSurvivorLocations();}
+ if(w.activities){['a','b'].forEach(k=>{if(w.activities[k])survivorActivities[k]=w.activities[k]});saveSurvivorActivities();}
+ if(w.reset){aiHistory=[];localStorage.setItem(aiHistoryKey,'[]');}
+ wsave();renderSurvivorLocations();
+}
+const origApply=applyLiveEvent;
+applyLiveEvent=function(ev){
+ if(ev&&ev.type==='world'){applyWorld(ev.payload);return;}
+ return origApply(ev);
+};
+
+// ── CURRENT FIELD 표시: 위치 / 행동 / 착의 / 시각 ──
+renderSurvivorLocations=function(){
+ const own=sender==='b'?'b':'a';
+ currentLocation=survivorLocations[own]||'안전지대';
+ localStorage.setItem('dz2_current_location',currentLocation);
+ const la=survivorLocations.a,lb=survivorLocations.b,same=la===lb;
+ const nameA=profiles.a?.name||'HO1',nameB=profiles.b?.name||'HO2';
+ const actA=survivorActivities.a||'대기 중',actB=survivorActivities.b||'대기 중';
+ const ti=timeInfo();
+ const title=document.getElementById('dzPlaceTitle'),clock=document.getElementById('dzClock'),scene=document.getElementById('dzSceneText');
+ if(title)title.textContent=same?la:'분리 행동 중';
+ if(clock)clock.textContent=ti.full+'　·　'+(same?la:'분리 행동');
+ const group=document.getElementById('dzGroupState');
+ if(group)group.textContent='동행 상태　'+(same?'함께 행동 중':'각자 행동 중');
+ let tEl=document.getElementById('dzWorldTime');
+ if(!tEl){const foot=document.querySelector('.dz-scene-foot');if(foot){tEl=document.createElement('span');tEl.id='dzWorldTime';foot.insertBefore(tEl,foot.firstChild);}}
+ if(tEl)tEl.textContent='시각　'+ti.full+' ('+ti.part+')';
+ const row=(k,name,loc,act)=>'<div class="dz-location-row" data-k="'+k+'"><b>'+esc(name)+'</b><span>'+esc(loc)+'</span><small>행동: '+esc(act)+'</small><small>착의: '+esc(dzWorld.clothing[k]||DEF_CLOTH)+(k===own?' <i>✎ 눌러서 수정</i>':'')+'</small></div>';
+ const pair=document.getElementById('dzLocationPair');
+ if(pair)pair.innerHTML=row('a',nameA,la,actA)+row('b',nameB,lb,actB);
+ const hero=document.getElementById('heroLocation');
+ if(hero)hero.textContent=same?la:nameA+' '+la+' / '+nameB+' '+lb;
+ const loc=document.getElementById('currentLocation');if(loc)loc.textContent=currentLocation;
+ if(scene){
+  scene.textContent=same
+   ?(la==='안전지대'?'낡은 건물 안은 고요하다. 먼지 쌓인 창문 너머로 텅 빈 도로가 보인다. 멀리서 금속을 긁는 소리가 들려온다.':la+'에 도착했다. 주변을 살피자. 어디선가 희미한 소음이 들린다.')
+   :nameA+'은(는) '+la+'에서 '+actA+' 중이고, '+nameB+'은(는) '+lb+'에서 '+actB+' 중이다. 두 사람은 지금 떨어져 있다.';
+ }
+};
+document.getElementById('dzLocationPair')?.addEventListener('click',e=>{
+ const r=e.target.closest('.dz-location-row');if(!r)return;
+ const k=r.dataset.k;
+ if(k!==sender){toast('본인 캐릭터의 착의만 수정할 수 있습니다.');return;}
+ const v=prompt('현재 착의를 입력하세요 (예: 검은 후드티, 청바지, 운동화)',dzWorld.clothing[k]||'');
+ if(v===null)return;
+ dzWorld.clothing[k]=v.trim().slice(0,40)||DEF_CLOTH;
+ renderSurvivorLocations();publishWorld();
+});
+
+// ── KP 응답에서 상태/착의/경과 시간 해석 ──
+dzApplyKpState=function(raw){
+ let clean=String(raw);
+ const tm=/\[\[TIME\]\]\s*(\d{1,3})\s*\[\[\/TIME\]\]/.exec(clean);
+ if(tm){pendingMinutes=Math.max(1,Math.min(480,parseInt(tm[1],10)));clean=clean.replace(tm[0],'');}
+ const m=/\[\[STATE\]\]([\s\S]*?)\[\[\/STATE\]\]/.exec(clean);
+ if(m){
+  clean=clean.replace(m[0],'');
+  try{
+   const st=JSON.parse(m[1].replace(/```json|```/g,'').trim());
+   ['a','b'].forEach(k=>{
+    const v=st[k];if(!v)return;
+    const loc=String(v.location||'').trim().slice(0,20),act=String(v.activity||'').trim().slice(0,40),cl=String(v.clothing||'').trim().slice(0,40);
+    if(loc&&survivorLocations[k]!==loc){survivorLocations[k]=loc;publishLiveEvent('location',{character:k,location:loc});}
+    if(act)setSurvivorActivity(k,act);
+    if(cl)dzWorld.clothing[k]=cl;
+   });
+   saveSurvivorLocations();
+  }catch(err){console.warn('KP 상태 블록 해석 실패',err);}
+ }
+ renderSurvivorLocations();
+ return clean.trim()||String(raw);
+};
+
+// ── AI KP 호출: 시각/착의 전달 + 응답 후 시간 경과 ──
+callAI=async function(extra=''){
+ aiConfig={key:$('#aiKey').value.trim(),model:$('#aiModel').value.trim()||'openai/gpt-4o-mini',auto:$('#aiAuto').checked};
+ if(!aiConfig.key){toast('상태 / 판정 메뉴에서 OpenRouter API 키를 먼저 저장해 주세요.');$('#aiStatus').textContent='API 키가 비어 있습니다.';return null}
+ localStorage.setItem(aiConfigKey,JSON.stringify(aiConfig));
+ const button=$('#aiContinue');button.disabled=true;button.textContent='AI KP 진행 중…';$('#aiStatus').textContent='AI KP가 현재 상황을 정리하고 있습니다…';
+ const ti=timeInfo();
+ const stats=`A: ${JSON.stringify(trpgState.stats.a)} / B: ${JSON.stringify(trpgState.stats.b)}\n생존 상태 A: ${JSON.stringify(survival.a)}\n생존 상태 B: ${JSON.stringify(survival.b)}\n현재 위치: ${profiles.a?.name||'HO1'}=${survivorLocations.a}(${survivorActivities.a}, 착의: ${dzWorld.clothing.a}) / ${profiles.b?.name||'HO2'}=${survivorLocations.b}(${survivorActivities.b}, 착의: ${dzWorld.clothing.b}) / 단서: ${clues.slice(0,8).map(c=>c.text).join(' | ')}`;
+ const system=`너는 한국어 좀비 아포칼립스 2인용 TRPG의 KP(게임 진행자)다. 장르는 현실적이고 긴장감 있는 생존 호러다. 플레이어 캐릭터의 행동과 주사위 결과를 존중하고, 플레이어 캐릭터의 대사·선택·행동을 대신 결정하지 마라. 성공/실패 판정은 이미 코드가 처리했으므로 뒤집지 마라. 상황 묘사와 NPC 대사, 감각적 단서, 선택 가능한 행동을 2~5문단으로 제시하라. 임의로 캐릭터를 죽이거나 감염시키지 말고, 큰 변화는 위험을 예고하거나 판정으로 처리하도록 유도하라. 기존 설정과 모순되지 않게 진행하라. 규칙 설명보다 장면에 집중하라. 현재 게임 시각이 주어지므로 시간대(밤이면 어둡고 시야가 나쁘다, 해가 뜨면 밝아진다)를 묘사에 반영하라. 응답의 맨 끝에 반드시 두 블록을 붙여라. (1) 이번 장면에서 흐른 시간을 분 단위 정수로: [[TIME]]15[[/TIME]] — 대화·관찰은 2~10분, 이동·수색·치료는 10~40분, 먼 거리 이동은 40~90분, 수면·장시간 휴식은 최대 480분. (2) 위치/행동/착의 갱신 블록 한 줄: [[STATE]]{"a":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"},"b":{"location":"장소","activity":"짧은 행동","clothing":"현재 착의"}}[[/STATE]] a는 HO1, b는 HO2다. 장소는 안전지대, 주거 지역, 편의점, 병원, 지하철역, 경찰서, 주유소, 옥상, 물류 창고, 학교, 야외 도로 중 가장 가까운 것이나 짧은 장소명을 쓴다. 두 사람이 따로 움직이면 서로 다른 장소를 쓰고, 합류하면 같은 장소를 쓴다. 이번 장면에서 바뀌지 않은 사람은 현재 위치를 그대로 유지한다. 행동은 20자 이내, 착의는 25자 이내로 쓴다. 옷을 갈아입거나 젖거나 찢기거나 피가 묻는 등 변화가 있을 때만 착의를 갱신하고, 아니면 주어진 현재 착의를 그대로 쓴다.`;
+ const user=`현재 세계: 2026년 11월 25일 좀비 사태 발생 첫날. 두 생존자가 함께 생존 중이다.\n현재 게임 시각: ${ti.full} (${ti.part})\n능력치: ${stats}\n최근 진행 기록:\n${recentContext()}\n\n행동 중인 플레이어: ${survName(sender)} (${sender==='a'?'HO1':'HO2'})\n플레이어의 추가 행동/지시: ${extra||'직전 기록을 바탕으로 다음 장면을 진행해 줘.'}\n\nKP로서 다음 장면을 자연스럽게 진행해 줘.`;
+ try{
+  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+aiConfig.key,'Content-Type':'application/json','HTTP-Referer':location.href,'X-Title':'DEAD ZONE TRPG'},body:JSON.stringify({model:aiConfig.model,messages:[{role:'system',content:system},...aiHistory.slice(-10),{role:'user',content:user}],temperature:0.85,max_tokens:1100})});
+  const data=await res.json();if(!res.ok)throw new Error(data.error?.message||`OpenRouter 오류 ${res.status}`);
+  let answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error('AI 응답 내용이 비어 있습니다. 모델 ID를 확인해 주세요.');
+  pendingMinutes=null;
+  answer=dzApplyKpState(answer);
+  const mins=pendingMinutes!=null?pendingMinutes:estimateMinutes(extra);pendingMinutes=null;
+  dzWorld.minutes+=mins;
+  aiHistory.push({role:'user',content:user},{role:'assistant',content:answer});aiHistory=aiHistory.slice(-20);localStorage.setItem(aiHistoryKey,JSON.stringify(aiHistory));
+  pushFeed('AI KP · 장면 진행',answer,'OpenRouter · '+aiConfig.model+' · '+timeInfo().full+' (+'+mins+'분)');
+  renderSurvivorLocations();publishWorld();
+  $('#aiStatus').textContent='AI KP 연결 성공 · 방금 장면을 기록했습니다. (+'+mins+'분)';$('#aiPrompt').value='';return answer;
+ }catch(err){$('#aiStatus').textContent='연결 실패: '+err.message;toast('AI 연결에 실패했습니다. API 키와 모델을 확인해 주세요.');return null}
+ finally{button.disabled=false;button.textContent='AI KP에게 진행 요청'}
+};
+
+// ── 시작 인트로 (FIELD LOG) ──
+function introText(){
+ const a=survName('a'),b=survName('b');
+ return `2026년 11월 25일 18:00. 해는 한 시간 전에 졌고, 가로등은 절반쯤 꺼져 있다. 멀리서 사이렌이 끊겼다 이어지기를 반복한다.\n${a}와(과) ${b}은(는) 안전지대로 정한 낡은 건물 안에 있다. 창밖의 도로는 비어 있지만, 금속을 긁는 소리가 어딘가에서 들려온다.\n밤이 깊기 전에 무엇을 할지 정해야 한다.`;
+}
+async function postIntro(){
+ dzWorld.introDone=true;
+ pushFeed('FIELD LOG · '+timeInfo().full,introText(),'시스템 · 상황 개시');
+ await publishWorld();
+}
+function ensureIntro(){
+ if(introBusy||dzWorld.introDone)return;
+ if(!currentRole||!authUser||!liveTimer)return;
+ if(!lobbyState.gameStarted||!bothReady())return;
+ if($('#lobbyScreen').classList.contains('show')||$('#profileGate').classList.contains('show'))return;
+ introBusy=true;
+ try{
+  if(trpgState.feed.some(f=>f.sub==='시스템 · 상황 개시')){dzWorld.introDone=true;wsave();}
+  else postIntro();
+ }finally{introBusy=false}
+}
+setInterval(ensureIntro,3000);
+
+// ── 초기화 버튼: 위치/행동/착의/시각까지 전부 초기화 + 양쪽 기기 반영 ──
+(()=>{
+ const old=document.getElementById('dzResetSession');if(!old)return;
+ const btn=old.cloneNode(true);old.replaceWith(btn);
+ btn.addEventListener('click',async()=>{
+  if(!confirm('진행 기록을 모두 지우고, 생존자 상태·위치·행동·착의·시각을 처음(저녁 6시)으로 되돌릴까요?'))return;
+  ['a','b'].forEach(k=>{const x=survival[k];x.hp=x.maxHp;x.san=x.maxSan;x.hunger=100;x.thirst=0;x.fatigue=0;x.bleeding=0;x.infect=0;x.injuries=[];x.conditions=[];x.alive=true;x.down=false;x.turnsDown=0;});
+  survival.conditionLog=[];trpgState.feed=[];trpgState.turn=0;trpgState.events=0;
+  persistTRPG();renderTRPGFeed();renderSurvival();
+  await publishLiveEvent('reset',{state:survival});
+  ['a','b'].forEach(k=>{
+   survivorLocations[k]='안전지대';survivorActivities[k]='대기 중';
+   publishLiveEvent('location',{character:k,location:'안전지대'});
+   publishLiveEvent('activity',{character:k,activity:'대기 중'});
+  });
+  saveSurvivorLocations();saveSurvivorActivities();
+  aiHistory=[];localStorage.setItem(aiHistoryKey,'[]');
+  dzWorld=freshWorld();dzWorld.introDone=true;
+  renderSurvivorLocations();
+  await publishWorld({reset:true});
+  pushFeed('FIELD LOG · '+timeInfo().full,introText(),'시스템 · 상황 개시');
+  toast('초기화 완료 · DAY 01 18:00부터 다시 시작합니다.');
+ });
+})();
+
+renderSurvivorLocations();
+})();
+</script>
+<!-- DZ-PATCH 01 END -->
 </body></html>
