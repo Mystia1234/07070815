@@ -33,7 +33,7 @@ body:not(.logged-in)>header,body:not(.logged-in)>main,body:not(.logged-in)>.toas
 .login-desc{color:#aebbb0;font-size:12px;line-height:1.8;margin:0 0 20px}
 .login-panel label{font-size:11px;color:var(--green);margin:12px 0 6px}
 .login-panel .btn{width:100%;margin-top:16px;padding:12px}
-.login-error{min-height:18px;color:var(--red);font-size:11px;margin-top:10px}
+.login-error{display:block;min-height:22px;color:#ff6b6b;font-size:12px;font-weight:700;line-height:1.55;margin-top:12px;padding:8px 10px;border:1px solid #8f4545;background:#2a1717;overflow-wrap:anywhere}.login-error:empty{display:none}.login-error[data-state="working"]{color:#d7c98a;border-color:#766b3d;background:#292514}.login-error[data-state="success"]{color:#9ee0a7;border-color:#47764d;background:#142519}
 .account-badge{color:var(--amber);font:10px var(--mono);border:1px solid #695b3b;padding:5px 8px}
 
 .profile-gate{position:fixed;inset:0;z-index:90;background:radial-gradient(ellipse at 50% 0%,#2a3a2e 0%,transparent 58%),#0c110e;display:none;place-items:center;padding:18px;overflow:auto}
@@ -575,7 +575,37 @@ function applyLogin(account){
  if(lobbyState[own]?.ready){$('#loginScreen').style.display='none';$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.add('show');renderLobby();if(lobbyState.gameStarted)enterGame();}
  else showProfileGate();
 }
-$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('#loginId').value.trim(),pw=$('#loginPassword').value,email=emailForId(id);if(!email){$('#loginError').textContent='아이디 또는 비밀번호가 올바르지 않습니다.';return;}const button=$('#loginForm button[type="submit"]');button.disabled=true;button.textContent='접속 확인 중…';try{const {data,error}=await sb.auth.signInWithPassword({email,password:pw});if(error)throw error;authUser=data.user;const role=email.startsWith('ho1@')?'ho1':'ho2';await loadCloudData();applyLogin(accountForRole(role));$('#loginError').textContent='';$('#loginPassword').value='';}catch(err){$('#loginError').textContent='로그인 실패: '+(err.message||'계정 정보를 확인해 주세요.');}finally{button.disabled=false;button.textContent='기록망 접속 →';}});
+$('#loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const id=$('#loginId').value.trim(),pw=$('#loginPassword').value,email=emailForId(id),status=$('#loginError');
+ const button=$('#loginForm button[type="submit"]');
+ if(!email){status.textContent='아이디 형식을 확인해 주세요. (HO1 / HO2 계정)';status.dataset.state='error';return;}
+ let phase='계정 인증';
+ button.disabled=true;button.textContent='접속 확인 중…';
+ status.textContent='① Supabase 계정 인증 중…';status.dataset.state='working';
+ try{
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
+  if(error)throw error;
+  if(!data?.user)throw new Error('인증 응답에 사용자 정보가 없습니다.');
+  authUser=data.user;
+  const role=email.startsWith('ho1@')?'ho1':'ho2';
+  phase='서버 기록 불러오기';
+  status.textContent='② 계정 인증 완료. 서버 기록을 불러오는 중…';
+  await loadCloudData();
+  phase='화면 전환';
+  status.textContent='③ 서버 연결 완료. 화면을 여는 중…';
+  applyLogin(accountForRole(role));
+  status.textContent='접속 성공';status.dataset.state='success';
+  $('#loginPassword').value='';
+ }catch(err){
+  const detail=err&&err.message?err.message:String(err||'알 수 없는 오류');
+  status.textContent='['+phase+' 단계에서 중단됨] '+detail;
+  status.dataset.state='error';
+  console.error('로그인 과정 실패:',phase,err);
+ }finally{
+  button.disabled=false;button.textContent='기록망 접속 →';
+ }
+});
 async function logout(){if(currentRole && !lobbyState.gameStarted){const k=myCharacter();lobbyState[k]={ready:false,joinedAt:null};persistLobby();if(authUser)await sb.from('survivors').update({is_ready:false}).eq('id',authUser.id);}await sb.auth.signOut();authUser=null;document.body.classList.remove('logged-in');$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.remove('show');$('#loginScreen').style.display='grid';$('#loginId').value='';$('#loginPassword').value='';$('#loginError').textContent='';currentRole=null;}
 $('#logoutButton').addEventListener('click',logout);
 async function restoreAuth(){try{const {data}=await sb.auth.getSession();if(data.session){authUser=data.session.user;await loadCloudData();const role=authUser.email==='ho1@deadzone.local'?'ho1':'ho2';applyLogin(accountForRole(role));}}catch(err){console.error('세션 복원 실패',err)}}restoreAuth();
