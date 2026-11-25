@@ -631,12 +631,16 @@ async function startLiveSync(){
  try{
   const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').order('id',{ascending:false}).limit(500);if(error)throw error;
   const rows=data||[];liveCursor=rows.reduce((m,row)=>Math.max(m,Number(row.id)||0),0);
-  // 접속 시 기기별 localStorage 값이 달라도 가장 최근 생존 상태 이벤트를 공통 기준으로 맞춘다.
+  // 재접속 시 가장 최근 생존 상태와 생존자별 위치를 복원한다.
+  let restoredSurvival=false;const restoredLocations={};
   for(const row of rows){
-   try{const ev=JSON.parse(row.content);if(ev.__dz_live===1&&ev.type==='survival'&&ev.payload?.state){
-    applyingRemoteState=true;survival=ev.payload.state;localStorage.setItem(survivalKey,JSON.stringify(survival));renderSurvival();applyingRemoteState=false;break;
-   }}catch{}
+   try{const ev=JSON.parse(row.content);if(ev.__dz_live!==1)continue;
+    if(!restoredSurvival&&ev.type==='survival'&&ev.payload?.state){applyingRemoteState=true;survival=ev.payload.state;localStorage.setItem(survivalKey,JSON.stringify(survival));renderSurvival();applyingRemoteState=false;restoredSurvival=true;}
+    if(ev.type==='location'&&ev.payload?.character&&ev.payload?.location&&!restoredLocations[ev.payload.character])restoredLocations[ev.payload.character]=ev.payload.location;
+   }catch{}
+   if(restoredSurvival&&restoredLocations.a&&restoredLocations.b)break;
   }
+  Object.assign(survivorLocations,restoredLocations);saveSurvivorLocations();renderSurvivorLocations();
  }catch(err){applyingRemoteState=false;console.error('실시간 동기화 시작 실패',err);return}
  liveTimer=setInterval(pollLiveEvents,1200);pollLiveEvents();
 }
