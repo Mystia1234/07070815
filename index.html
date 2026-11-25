@@ -557,7 +557,7 @@ function showProfileGate(){
  $('#profileGate').classList.add('show');
 }
 function applyLogin(account){
- currentRole=account.role;sender=account.character;renderSurvivorLocations();document.body.classList.add('logged-in');$('#loginScreen').style.display='none';
+ currentRole=account.role;sender=account.character;renderSurvivorLocations();rpV2Start();document.body.classList.add('logged-in');
  $('#activeAccount').textContent=account.label+' 접속 중';$('#chatRoleHint').textContent=account.label+' · '+(sender==='a'?'생존자 1':'생존자 2')+' 계정으로 작성합니다.';
  const actor=$('#actorSelect');if(actor){actor.value=sender;[...actor.options].forEach(o=>o.disabled=o.value!==sender);actor.disabled=true;}const actionActor=$('#actionActor');if(actionActor){actionActor.value=sender;actionActor.disabled=true;}
  $('#chatInput').placeholder=(sender==='a'?'HO1':'HO2')+'로 역극을 작성하세요...';
@@ -654,8 +654,7 @@ function applyLiveEvent(ev){
  applyingRemoteEvent=true;
  try{
   if(ev.type==='chat'){const m=ev.payload;if(!dzChatHistory.some(x=>x.at&&x.at===m.at&&x.by===m.by)){dzChatHistory.push(m);dzChatHistory=dzChatHistory.slice(-100);localStorage.setItem(dzChatKey,JSON.stringify(dzChatHistory));renderDzChat();}}
-  else if(ev.type==='roleplay_clear'){messages=[];save(keys[1],messages);renderMessages();}
-  else if(ev.type==='roleplay'){const m=ev.payload;if(!messages.some(x=>x.liveId&&x.liveId===m.liveId)){messages.push(m);messages=messages.slice(-200);save(keys[1],messages);renderMessages();}}
+  // 구형 roleplay 이벤트는 무시한다. 새 역극은 __dz_rp_v2 전용 코드만 처리한다.
   else if(ev.type==='location'&&ev.payload?.character&&ev.payload?.location){const k=ev.payload.character;if(k==='a'||k==='b'){survivorLocations[k]=ev.payload.location;saveSurvivorLocations();renderSurvivorLocations();}}
   else if(ev.type==='activity'&&ev.payload?.character&&ev.payload?.activity){const k=ev.payload.character;if(k==='a'||k==='b'){survivorActivities[k]=String(ev.payload.activity).slice(0,80);saveSurvivorActivities();renderSurvivorLocations();}}
   else if(ev.type==='feed'){const f=ev.payload;if(!trpgState.feed.some(x=>x.liveAt===f.liveAt&&x.title===f.title)){trpgState.feed.unshift(f);trpgState.feed=trpgState.feed.slice(-30);renderTRPGFeed();persistTRPG();}}
@@ -704,16 +703,7 @@ async function startLiveSync(){
  liveSeenIds.clear();
  try{
   const rows=await fetchLatestLiveRows();
-  // 과거 로그를 각 기기의 localStorage가 아니라 서버의 공통 기록으로 재구성한다.
-  messages=[];
-  orderedLiveRows(rows).forEach(row=>{
-   try{
-    const ev=JSON.parse(row.content);if(ev.__dz_live!==1)return;
-    if(ev.type==='roleplay_clear')messages=[];
-    else if(ev.type==='roleplay'&&ev.payload&&!messages.some(m=>m.liveId&&m.liveId===ev.payload.liveId))messages.push(ev.payload);
-   }catch{}
-  });
-  messages=messages.slice(-200);save(keys[1],messages);renderMessages();
+  // v2 역극은 전용 동기화기가 처리한다. 이 공용 이벤트 동기화기는 다른 게임 상태만 처리한다.
   consumeLiveRows(rows,true);
   let restoredSurvival=false;const restoredLocations={},restoredActivities={};
   for(const row of rows){
@@ -784,17 +774,112 @@ async function refreshCloudLobby(){
  }catch(err){console.error('서버 동기화 오류',err)}
 }
 
-// 다른 탭의 프로필 변경은 아래 통합 storage 리스너에서 대기실에만 반영합니다.
-function renderMessages(){
- const box=$('#messages');box.innerHTML='';
- if(!messages.length)box.innerHTML='<div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div>';
- messages.forEach(m=>{let d=document.createElement('div');d.className='msg'+(m.key===sender?' mine':'');const p=profiles[m.key]||{};d.innerHTML=`<div class="who">${p.img?`<img class="mini" src="${p.img}">`:''}${esc(p.name||m.name)}</div><p>${esc(m.text)}</p><time>${esc(m.time)}</time>`;box.appendChild(d)});
- $('#msgCount').textContent=messages.length+'개 메시지';box.scrollTop=box.scrollHeight;save(keys[1],messages);
+// ── 역극 통신 v2: 기존 로컬 메시지/공용 이벤트 로직과 완전히 분리 ──
+let rpV2Messages=[];
+let rpV2Timer=null,rpV2Busy=false,rpV2Sending=false;
+let rpV2LastRowIds=new Set();
+function rpStatus(message,isError=false){
+ const el=$('#liveSyncStatus');if(el){el.textContent=message;el.dataset.error=isError?'1':'0';}
 }
-renderMessages();
-$('#chatForm').addEventListener('submit',async e=>{e.preventDefault();e.stopPropagation();const input=$('#chatInput');const text=input.value.trim();if(!text)return;if(!authUser){toast('로그인 연결이 만료됐습니다. 다시 로그인해 주세요.');return;}const p=profiles[sender]||{};const entry={key:sender,name:p.name||(sender==='a'?'HO1':'HO2'),text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}),mine:true,liveId:authUser.id+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)};messages.push(entry);messages=messages.slice(-200);input.value='';renderMessages();setSurvivorActivity(sender,'역극 작성 · '+entry.text.replace(/\s+/g,' ').slice(0,35));const sent=await publishLiveEvent('roleplay',entry);if(!sent)toast('이 기기에는 저장했지만 서버 전송은 실패했습니다.');});
-// 로그인 계정에 따라 작성 캐릭터가 고정됩니다.
-$('#clearChat').addEventListener('click',async()=>{if(!confirm('양쪽 기기의 역극 기록을 모두 비울까요?'))return;messages=[];save(keys[1],messages);renderMessages();if(!authUser){toast('현재 기기의 기록만 비웠습니다. 서버 동기화를 위해 다시 로그인해 주세요.');return;}const ok=await publishLiveEvent('roleplay_clear',{clearedAt:Date.now()});toast(ok?'역극 기록을 양쪽 기기에서 비웠습니다.':'현재 기기 기록은 비웠지만 서버 반영에 실패했습니다.');});
+function rpWriteStatus(message,isError=false){
+ const el=$('#liveWriteStatus');if(el){el.textContent='최근 전송 결과: '+message;el.dataset.error=isError?'1':'0';}
+}
+function renderRpV2(){
+ const box=$('#messages');if(!box)return;
+ box.replaceChildren();
+ if(!rpV2Messages.length){
+  const empty=document.createElement('div');empty.className='notice';empty.style.cssText='margin:auto;text-align:center';empty.textContent='아직 작성된 역극이 없습니다. 첫 장면을 시작해 보세요.';box.appendChild(empty);
+ }else{
+  rpV2Messages.slice(-300).forEach(m=>{
+   const item=document.createElement('div');item.className='msg'+(m.character===sender?' mine':'');
+   const who=document.createElement('div');who.className='who';
+   const profile=profiles[m.character]||{};
+   if(profile.img){const img=document.createElement('img');img.className='mini';img.src=profile.img;img.alt='';who.appendChild(img);}
+   who.appendChild(document.createTextNode(m.name||profile.name||(m.character==='a'?'HO1':'HO2')));
+   const body=document.createElement('p');body.textContent=m.text||'';
+   const time=document.createElement('time');time.textContent=m.time||'';
+   item.append(who,body,time);box.appendChild(item);
+  });
+ }
+ const count=$('#msgCount');if(count)count.textContent=rpV2Messages.length+'개 메시지';
+ box.scrollTop=box.scrollHeight;
+}
+function rpV2Order(rows){
+ return (rows||[]).slice().sort((a,b)=>{
+  const ta=new Date(a.created_at||0).getTime(),tb=new Date(b.created_at||0).getTime();
+  return ta-tb||String(a.id||'').localeCompare(String(b.id||''));
+ });
+}
+function rpV2Rebuild(rows){
+ const rebuilt=[];
+ rpV2Order(rows).forEach(row=>{
+  try{
+   const ev=JSON.parse(row.content||'{}');
+   if(ev.__dz_rp_v2!==1)return;
+   if(ev.action==='clear'){rebuilt.length=0;return;}
+   if(ev.action==='message'&&ev.message&&ev.message.text){
+    rebuilt.push({...ev.message,rowId:String(row.id||'')});
+   }
+  }catch(err){console.warn('역극 기록 해석 실패',err);}
+ });
+ rpV2Messages=rebuilt.slice(-300);
+ renderRpV2();
+}
+async function rpV2Fetch(){
+ const {data,error}=await sb.from('game_logs').select('id,user_id,content,created_at').order('created_at',{ascending:true}).limit(1000);
+ if(error)throw error;
+ return data||[];
+}
+async function rpV2Refresh(){
+ if(!authUser||rpV2Busy)return;
+ rpV2Busy=true;
+ try{
+  const rows=await rpV2Fetch();
+  rpV2Rebuild(rows);
+  rpV2LastRowIds=new Set(rows.map(x=>String(x.id||'')));
+  rpStatus('역극 서버 연결됨 · 공통 기록 '+rpV2Messages.length+'개');
+ }catch(err){
+  console.error('역극 불러오기 실패',err);
+  rpStatus('역극 수신 실패: '+(err.message||'game_logs SELECT 권한 확인'),true);
+ }finally{rpV2Busy=false;}
+}
+async function rpV2Start(){
+ if(!authUser)return;
+ if(rpV2Timer)clearInterval(rpV2Timer);
+ rpV2Timer=null;rpV2Busy=false;rpV2LastRowIds.clear();
+ rpStatus('역극 서버에 연결하는 중…');
+ await rpV2Refresh();
+ rpV2Timer=setInterval(rpV2Refresh,1800);
+}
+async function rpV2Write(action,message=null){
+ if(!authUser)throw new Error('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+ const content=JSON.stringify({__dz_rp_v2:1,action,message,client_at:Date.now()});
+ // 반환 SELECT를 요구하지 않는 INSERT로 저장 단계와 조회 단계를 분리한다.
+ const {error}=await sb.from('game_logs').insert({user_id:authUser.id,content});
+ if(error)throw error;
+}
+$('#chatForm').addEventListener('submit',async e=>{
+ e.preventDefault();e.stopPropagation();
+ const input=$('#chatInput'),text=input.value.trim();if(!text||rpV2Sending)return;
+ if(!authUser){rpWriteStatus('로그인 연결이 없습니다.',true);return;}
+ const profile=profiles[sender]||{};
+ const message={character:sender,name:profile.name||(sender==='a'?'HO1':'HO2'),text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false})};
+ rpV2Sending=true;const button=$('#chatForm button[type="submit"]');button.disabled=true;button.textContent='저장 중…';
+ try{
+  await rpV2Write('message',message);
+  input.value='';rpWriteStatus('서버 저장 성공');await rpV2Refresh();
+  setSurvivorActivity(sender,'역극 작성 · '+text.replace(/\s+/g,' ').slice(0,35));
+ }catch(err){
+  console.error('역극 저장 실패',err);rpWriteStatus('서버 저장 실패: '+(err.message||'INSERT 권한 확인'),true);
+  toast('역극을 서버에 저장하지 못했습니다: '+(err.message||'권한을 확인해 주세요.'));
+ }finally{rpV2Sending=false;button.disabled=false;button.textContent='보내기 ↗';}
+});
+$('#clearChat').addEventListener('click',async()=>{
+ if(!confirm('양쪽 기기의 역극 기록을 모두 비울까요?'))return;
+ try{await rpV2Write('clear');rpV2Messages=[];renderRpV2();rpWriteStatus('기록 초기화 완료 · 서버 반영 확인 중');await rpV2Refresh();}
+ catch(err){rpWriteStatus('초기화 실패: '+(err.message||'서버 권한 확인'),true);toast('역극 초기화 실패: '+(err.message||''));}
+});
+renderRpV2();
 
 let cropImage=null,cropTarget=null,cropScale=1,cropX=0,cropY=0,cropBase=1,cropDragging=false,cropPointer=null;
 function compressImage(file,done){
