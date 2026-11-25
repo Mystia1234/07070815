@@ -352,7 +352,7 @@ body:not(.logged-in)>header,body:not(.logged-in)>main,body:not(.logged-in)>.toas
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 const keys=['dz2_profiles','dz2_messages','dz2_logs','dz2_items'];
 let profiles=JSON.parse(localStorage.getItem(keys[0])||'null')||{a:{name:'생존자 1',bio:'',img:''},b:{name:'생존자 2',bio:'',img:''}};
 ['a','b'].forEach(k=>{const fallback=k==='a'?'생존자 1':'생존자 2';if(profiles[k] && !profiles[k].saved && ((profiles[k].name&&profiles[k].name!==fallback)||profiles[k].bio||profiles[k].img))profiles[k].saved=true;});
