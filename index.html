@@ -101,7 +101,7 @@ a{color:#111!important}
 .page-back{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid #60775f;background:#1a281e;color:#e2ebdf;font-size:12px;min-height:40px}
 .page-back:active{background:#304634}.page-back-hint{font-size:10px;color:var(--muted)}
 @media(max-width:560px){.quick-nav{grid-template-columns:1fr;gap:8px;padding:10px}.quick-link{min-height:68px}.page-backbar{position:sticky;top:58px;z-index:8;padding:5px 0;background:#0c110eeb;backdrop-filter:blur(8px)}}
-</style>
+.activity-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 16px;padding:10px;border:1px solid #b8b8b8;background:#f4f4f4}.activity-tab{min-height:42px;padding:9px 8px;font-size:12px;font-weight:700}.activity-tab.active{outline:3px solid #777;outline-offset:1px}.activity-panel{display:none}.activity-panel.active-panel{display:block}.activity-panel>.content-head:first-child{display:none}@media(max-width:560px){.activity-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:8px}.activity-tab{min-height:46px;font-size:11px}}</style>
 </head>
 <body>
 <div class="login-screen" id="loginScreen">
@@ -174,11 +174,12 @@ a{color:#111!important}
  <div class="card"><div class="card-head">기록 메뉴 <small>01—10</small></div><nav class="nav">
  <button class="active" data-page="start">▣ 시작 화면 <small>01</small></button>
  <button data-page="people">♟ 생존자 <small>02</small></button>
- <button data-page="map">⌖ 주변 지역 <small>03</small></button>
- <button data-page="actions">⚑ 행동 / 이동 <small>04</small></button>
- <button data-page="items">▤ 소지품 <small>04</small></button>
- <button data-page="rp">✉ 역극 통신 <small>05</small></button>
- <button data-page="trpg">🎲 TRPG 진행 <small>06</small></button>
+ <button data-page="activities">⌖ 생존 활동 <small>03—08</small></button>
+
+
+
+
+
  <button data-page="survival">♥ 생존 상태 <small>07</small></button>
  <button data-page="encounter">☠ 조우 / 전투 <small>08</small></button>
  <button data-page="investigation">⌕ 조사 / 단서 <small>09</small></button>
@@ -199,12 +200,12 @@ a{color:#111!important}
   <div class="sub">※ 위 내용은 시작을 위한 도입부입니다. 이후 사건, 장소, 관계, 생존 방식은 두 캐릭터의 역극으로 자유롭게 정할 수 있습니다.</div>
  </div>
  <div class="card quick-card"><div class="card-head"><span>바로가기</span><small>생존 활동 · 원하는 기능을 선택하세요</small></div><div class="quick-nav">
-  <button class="quick-link" onclick="go('map')"><span class="quick-icon">⌖</span><span class="quick-copy"><b>주변 지역 탐색</b><small>이동할 장소와 주변 상황 확인</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('actions')"><span class="quick-icon">⚑</span><span class="quick-copy"><b>행동 선택 / 이동</b><small>생존 행동 선택 및 판정</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('rp')"><span class="quick-icon">✉</span><span class="quick-copy"><b>역극 통신</b><small>두 생존자의 대화와 상황 기록</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('trpg')"><span class="quick-icon">🎲</span><span class="quick-copy"><b>주사위 / TRPG 진행</b><small>능력치 확인 및 D100 판정</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('items')"><span class="quick-icon">▤</span><span class="quick-copy"><b>소지품 확인</b><small>보유 물자와 아이템 관리</small></span><span class="quick-arrow">→</span></button>
-  <button class="quick-link" onclick="go('save')"><span class="quick-icon">▣</span><span class="quick-copy"><b>게임 저장 / 불러오기</b><small>진행 기록 백업 및 복원</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('activities','map')"><span class="quick-icon">⌖</span><span class="quick-copy"><b>주변 지역 탐색</b><small>이동할 장소와 주변 상황 확인</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('activities','actions')"><span class="quick-icon">⚑</span><span class="quick-copy"><b>행동 선택 / 이동</b><small>생존 행동 선택 및 판정</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('activities','rp')"><span class="quick-icon">✉</span><span class="quick-copy"><b>역극 통신</b><small>두 생존자의 대화와 상황 기록</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('activities','trpg')"><span class="quick-icon">🎲</span><span class="quick-copy"><b>주사위 / TRPG 진행</b><small>능력치 확인 및 D100 판정</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('activities','items')"><span class="quick-icon">▤</span><span class="quick-copy"><b>소지품 확인</b><small>보유 물자와 아이템 관리</small></span><span class="quick-arrow">→</span></button>
+  <button class="quick-link" onclick="go('activities','save')"><span class="quick-icon">▣</span><span class="quick-copy"><b>게임 저장 / 불러오기</b><small>진행 기록 백업 및 복원</small></span><span class="quick-arrow">→</span></button>
  </div></div>
  <div class="card"><div class="card-head">현재 생존자 <small>등록된 인원 2명</small></div><div class="card-body grid2" id="startPeople">
   <div class="person"><div class="portrait" id="smallPortraitA">A</div><div><h3 id="startNameA">생존자 1</h3><p>첫 번째 기록자</p></div></div>
@@ -227,7 +228,7 @@ a{color:#111!important}
  <p class="notice">체력, 허기, 감염도 등의 수치는 현재 고정된 설정이 아닙니다. 실제 진행에 맞춰 추후 자유롭게 추가할 수 있습니다.</p>
 </div>
 
-<div class="page" id="page-map">
+<div class="page" id="page-activities"><div class="content-head"><div><div class="eyebrow">SURVIVAL CONSOLE</div><h2>생존 활동</h2></div><span class="tag">통합 관리</span></div><div class="activity-tabs" role="tablist" aria-label="생존 활동 기능"><button type="button" class="activity-tab active" data-activity="map">⌖ 지역 탐색</button><button type="button" class="activity-tab" data-activity="actions">⚑ 행동 / 이동</button><button type="button" class="activity-tab" data-activity="rp">✉ 역극 통신</button><button type="button" class="activity-tab" data-activity="trpg">🎲 주사위 / TRPG</button><button type="button" class="activity-tab" data-activity="items">▤ 소지품</button><button type="button" class="activity-tab" data-activity="save">▣ 저장 / 불러오기</button></div><div class="activity-panel" id="activity-map">
  <div class="content-head"><div><div class="eyebrow">주변 탐색</div><h2>주변 지역</h2></div><span class="tag">정보 미확인</span></div>
  <div class="card"><div class="card-head">탐색 후보 지역 <small>장소를 눌러 기록</small></div><div class="card-body"><div class="map">
  <button class="zone" data-zone="주거 지역"><b>01 / 주거 지역</b><span>불이 켜진 창문이 드문드문 보인다.<br>내부 상황은 알 수 없다.</span><i class="danger">미확인</i></button>
@@ -242,8 +243,7 @@ a{color:#111!important}
  <button class="zone" data-zone="기타 장소"><b>10 / 기타 장소</b><span>두 사람이 직접 정한 장소를<br>기록할 수 있다.</span><i class="danger">자유 입력</i></button>
  </div></div></div><p class="notice">지도는 분위기 확인용 예시입니다. 실제 이동 경로와 장소는 역극에서 자유롭게 정하세요.</p>
 </div>
-
-<div class="page" id="page-actions">
+<div class="activity-panel" id="activity-actions">
  <div class="content-head"><div><div class="eyebrow">현장 행동 단말기</div><h2>행동 / 이동</h2></div><span class="tag">행동을 선택하세요</span></div>
  <div class="card"><div class="card-head">현재 위치 <small>탐색 지역</small></div><div class="card-body"><p class="notice">현재 위치: <strong id="currentLocation">미확인 지역</strong></p><p class="hint">지역을 이동하려면 주변 지역 메뉴에서 목적지를 선택하세요. 이동 후 아래 행동을 선택할 수 있습니다.</p></div></div>
  <div class="card"><div class="card-head">행동 선택 <small>선택 즉시 판정하고 결과를 아래에 표시</small></div><div class="card-body"><div class="row action-actor"><label for="actionActor">행동할 생존자</label><select class="field" id="actionActor"><option value="a">생존자 1</option><option value="b">생존자 2</option></select></div><div class="action-grid">
@@ -253,27 +253,19 @@ a{color:#111!important}
   <button class="btn action-shortcut" data-action="문이나 장애물을 힘으로 연다" data-stat="힘">문 열기</button>
   <button class="btn action-shortcut" data-action="부상자를 응급처치한다" data-stat="지능">응급처치</button>
   <button class="btn action-shortcut" data-action="주변의 소리를 듣고 위험을 파악한다" data-stat="관찰">소리 듣기</button>
-  <button class="btn secondary" onclick="go('rp')">상대에게 통신 보내기</button>
-  <button class="btn secondary" onclick="go('map')">다른 지역으로 이동</button>
+  <button class="btn secondary" onclick="go('activities','rp')">상대에게 통신 보내기</button>
+  <button class="btn secondary" onclick="go('activities','map')">다른 지역으로 이동</button>
   </div><div id="actionResult" class="action-result" aria-live="polite"><b>행동 결과</b><p>행동을 선택하면 판정 결과가 여기에 표시됩니다.</p></div></div></div>
  <div class="card"><div class="card-head">자유 행동 <small>원하는 행동 직접 입력</small></div><div class="card-body"><textarea class="field" id="actionFreeText" rows="3" placeholder="예: 편의점 셔터를 조금 들어 올리고 안쪽을 살핀다."></textarea><div class="row" style="margin-top:8px"><select class="field" id="actionFreeStat" style="max-width:150px"><option>관찰</option><option>민첩</option><option>힘</option><option>지능</option><option>운</option></select><button class="btn" id="actionFreeGo">행동 실행 / 판정</button></div></div></div>
  <p class="hint">행동을 실행하면 D100 판정이 즉시 진행되고, 결과는 이 화면과 TRPG 진행 기록에 함께 남습니다. 이동은 주변 지역에서 선택하세요.</p>
 </div>
-
-<div class="page" id="page-items">
- <div class="content-head"><div><div class="eyebrow">소지품 기록</div><h2>소지품</h2></div><span class="tag">초기 상태 미정</span></div>
- <div class="card"><div class="card-head">공동 물자 <small>직접 설정 가능</small></div><div class="card-body"><p class="notice">처음부터 정해진 아이템은 없습니다. 두 캐릭터가 가진 물건을 역극으로 정하고, 아래 기록란에 적어 두세요.</p><div id="itemList" class="inventory"></div><form id="itemForm" class="row" style="margin-top:12px"><input class="field" id="itemName" placeholder="물건 이름" required style="flex:1;min-width:120px"><input class="field" id="itemQty" placeholder="수량 / 메모" style="flex:1;min-width:100px"><button class="btn">추가 +</button></form></div></div>
-</div>
-
-<div class="page" id="page-rp">
+<div class="activity-panel" id="activity-rp">
  <div class="content-head"><div><div class="eyebrow">두 사람의 비공개 기록</div><h2>역극 통신</h2></div><span class="tag">이 기기에 저장</span></div>
  <div class="card"><div class="card-head"><span>대화 기록</span><small id="msgCount">0개 메시지</small></div><div class="chatbox"><div class="messages" id="messages"><div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div></div><form class="composer" id="chatForm"><textarea id="chatInput" placeholder="대사와 지문을 자유롭게 입력하세요..." required></textarea><button class="btn" type="submit">보내기 ↗</button></form></div></div>
  <div class="row"><span class="hint" id="chatRoleHint">로그인한 계정의 캐릭터로 작성합니다.</span><button class="btn secondary" id="clearChat">대화 기록 비우기</button></div>
  <p class="hint">로그인한 계정(HO1 또는 HO2)에 지정된 캐릭터로만 작성할 수 있습니다. 서로 다른 휴대폰에서 실시간으로 주고받는 기능은 데이터베이스 연결 후 구현됩니다.</p>
 </div>
-
-
-<div class="page" id="page-trpg">
+<div class="activity-panel" id="activity-trpg">
  <div class="content-head"><div><div class="eyebrow">자동 진행 · 초보자 모드</div><h2>TRPG 생존 진행</h2></div><span class="tag">시스템 진행자 작동 중</span></div>
  <div class="intro">
   <h3>진행 방법은 간단합니다</h3>
@@ -316,6 +308,26 @@ a{color:#111!important}
  </div></div></div>
  <p class="hint">※ 현재 TRPG 기능은 브라우저 안에서 작동하는 규칙 기반 시연판입니다. 실제 두 기기 동시 플레이와 AI가 상황에 맞춰 자유롭게 대화하는 KPC는 서버/AI 연결 단계에서 확장할 수 있습니다.</p>
 </div>
+<div class="activity-panel" id="activity-items">
+ <div class="content-head"><div><div class="eyebrow">소지품 기록</div><h2>소지품</h2></div><span class="tag">초기 상태 미정</span></div>
+ <div class="card"><div class="card-head">공동 물자 <small>직접 설정 가능</small></div><div class="card-body"><p class="notice">처음부터 정해진 아이템은 없습니다. 두 캐릭터가 가진 물건을 역극으로 정하고, 아래 기록란에 적어 두세요.</p><div id="itemList" class="inventory"></div><form id="itemForm" class="row" style="margin-top:12px"><input class="field" id="itemName" placeholder="물건 이름" required style="flex:1;min-width:120px"><input class="field" id="itemQty" placeholder="수량 / 메모" style="flex:1;min-width:100px"><button class="btn">추가 +</button></form></div></div>
+</div>
+<div class="activity-panel" id="activity-save">
+ <div class="content-head"><div><div class="eyebrow">기록 보관 / 백업</div><h2>저장 / 불러오기</h2></div><span class="tag">자동 저장 + 수동 백업</span></div>
+ <div class="card"><div class="card-head">자동 저장 상태 <small>브라우저 저장소</small></div><div class="card-body"><p class="notice" id="autosaveStatus">프로필, 역극, 소지품, 생존 기록, TRPG 진행은 변경할 때마다 이 브라우저에 자동 저장됩니다.</p><div class="row"><button class="btn" id="saveNow">지금 저장하기</button><button class="btn secondary" id="exportSave">저장 파일 다운로드 (.json)</button></div></div></div>
+ <div class="card"><div class="card-head">저장 파일 불러오기 <small>백업 복원</small></div><div class="card-body"><p class="notice">이전에 다운로드한 DEAD ZONE 저장 파일을 선택하면 현재 브라우저 기록을 해당 백업으로 교체합니다.</p><input class="field" type="file" id="importSaveFile" accept=".json,application/json"><button class="btn" id="importSave" style="margin-top:8px">선택한 저장 파일 불러오기</button></div></div>
+ <div class="card"><div class="card-head">주의</div><div class="card-body notice">현재 자동 저장은 로그인한 기기의 브라우저에 저장됩니다. 브라우저 데이터 삭제나 기기 변경에 대비해 JSON 백업을 다운로드하세요. 서로 다른 휴대폰 간 실시간 공유는 추후 서버 연결 후 작동합니다.</div></div>
+</div></div>
+
+
+
+
+
+
+
+
+
+
 
 
 <div class="page" id="page-survival">
@@ -346,12 +358,7 @@ a{color:#111!important}
  <div class="card"><div class="card-head">기록 보관함 <small id="logCount">0개 기록</small></div><div class="card-body"><div id="newLogs"></div><form id="logForm" style="margin-top:10px"><input class="field" id="logTitle" placeholder="기록 제목 (선택)" style="margin-bottom:8px"><textarea class="field" id="logText" placeholder="오늘 있었던 일을 기록하세요..." rows="4" required></textarea><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn">기록 추가 +</button></div></form></div></div>
 </div>
 
-<div class="page" id="page-save">
- <div class="content-head"><div><div class="eyebrow">기록 보관 / 백업</div><h2>저장 / 불러오기</h2></div><span class="tag">자동 저장 + 수동 백업</span></div>
- <div class="card"><div class="card-head">자동 저장 상태 <small>브라우저 저장소</small></div><div class="card-body"><p class="notice" id="autosaveStatus">프로필, 역극, 소지품, 생존 기록, TRPG 진행은 변경할 때마다 이 브라우저에 자동 저장됩니다.</p><div class="row"><button class="btn" id="saveNow">지금 저장하기</button><button class="btn secondary" id="exportSave">저장 파일 다운로드 (.json)</button></div></div></div>
- <div class="card"><div class="card-head">저장 파일 불러오기 <small>백업 복원</small></div><div class="card-body"><p class="notice">이전에 다운로드한 DEAD ZONE 저장 파일을 선택하면 현재 브라우저 기록을 해당 백업으로 교체합니다.</p><input class="field" type="file" id="importSaveFile" accept=".json,application/json"><button class="btn" id="importSave" style="margin-top:8px">선택한 저장 파일 불러오기</button></div></div>
- <div class="card"><div class="card-head">주의</div><div class="card-body notice">현재 자동 저장은 로그인한 기기의 브라우저에 저장됩니다. 브라우저 데이터 삭제나 기기 변경에 대비해 JSON 백업을 다운로드하세요. 서로 다른 휴대폰 간 실시간 공유는 추후 서버 연결 후 작동합니다.</div></div>
-</div>
+
 
 <div class="page" id="page-config">
  <div class="content-head"><div><div class="eyebrow">기록 장치 설정</div><h2>생존자 정보</h2></div><span class="tag">프로필 편집</span></div>
@@ -434,11 +441,16 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function toast(t){let e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
 let pageTrail=['start'];
-function go(page,skipTrail=false){
- const current=$$('.page').find(p=>p.classList.contains('active'))?.id.replace('page-','');
- if(current&&current!==page&&!skipTrail){pageTrail.push(current);if(pageTrail.length>30)pageTrail.shift();}
- $$('.nav button').forEach(button=>button.classList.toggle('active',button.dataset.page===page));
- $$('.page').forEach(panel=>panel.classList.toggle('active',panel.id==='page-'+page));
+function go(page,subPage=null){
+ const aliases={map:'activities',actions:'activities',rp:'activities',trpg:'activities',items:'activities',save:'activities'};
+ if(aliases[page]){subPage=page;page='activities';}
+ $('.nav button').forEach(button=>button.classList.toggle('active',button.dataset.page===page));
+ $('.page').forEach(panel=>panel.classList.toggle('active',panel.id==='page-'+page));
+ if(page==='activities'){
+  const target=subPage||$('#page-activities .activity-tab.active')?.dataset.activity||'map';
+  $('#page-activities .activity-panel').forEach(panel=>panel.classList.toggle('active-panel',panel.id==='activity-'+target));
+  $('#page-activities .activity-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.activity===target));
+ }
  window.scrollTo({top:0,behavior:'auto'});
 }
 function goBack(){
@@ -448,9 +460,10 @@ function goBack(){
  if(!previous)previous='start';
  go(previous,true);
 }
-$$('.nav button').forEach(button=>button.addEventListener('click',()=>go(button.dataset.page)));
+$('.nav button').forEach(button=>button.addEventListener('click',()=>go(button.dataset.page)));
+$('#page-activities .activity-tab').forEach(button=>button.addEventListener('click',()=>go('activities',button.dataset.activity)));
 $$('.page').forEach(page=>{
- if(page.id==='page-start')return;
+ if(page.id==='page-start'||page.id==='page-activities')return;
  const head=page.querySelector('.content-head');
  if(!head||page.querySelector('.page-backbar'))return;
  const bar=document.createElement('div');
