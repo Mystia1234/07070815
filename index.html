@@ -579,11 +579,11 @@ async function refreshCloudLobby(){
  if(!authUser||cloudSyncBusy)return;
  try{
   await sb.from('survivors').update({last_seen_at:new Date().toISOString()}).eq('id',authUser.id);
-  const {data:rows,error}=await sb.from('survivors').select('ho_number,character_name,appearance,personality,avatar_data,is_ready,last_seen_at').order('ho_number');
+  const {data:rows,error}=await sb.from('survivors').select('ho_number,character_name,appearance,stats,avatar_data,is_ready,last_seen_at').order('ho_number');
   if(error)throw error;
   (rows||[]).forEach(row=>{const k=row.ho_number==='HO1'?'a':row.ho_number==='HO2'?'b':null;if(!k)return;
    const old=profiles[k]||{};profiles[k]={...old,name:row.character_name||old.name||'',bio:row.appearance||row.background||old.bio||'',saved:!!row.character_name,img:row.avatar_data||old.img||''};
-   if(row.personality){try{const cloudStats=JSON.parse(row.personality);if(cloudStats&&typeof cloudStats==='object'){trpgState.stats[k]={...trpgState.stats[k],...cloudStats};if(typeof statMarkup==='function')statMarkup(k);}}catch(_){}}
+   if(row.stats&&typeof row.stats==='object'){trpgState.stats[k]={...trpgState.stats[k],...row.stats};if(typeof statMarkup==='function')statMarkup(k);}
    lobbyState[k]={ready:!!row.is_ready,joinedAt:row.is_ready?(lobbyState[k]?.joinedAt||new Date().toISOString()):null};
   });
   const {data:gs}=await sb.from('game_state').select('current_day,current_location,game_started').eq('id',1).maybeSingle();
@@ -734,7 +734,7 @@ const kpcPool=[
 ];
 ['a','b'].forEach(k=>{const extra={'정신력':60,'건강':55,'매력':50,'은밀행동':50,'응급처치':45,'사격':30,'회피':30,'심리학':10,'자료조사':20,'듣기':50};Object.entries(extra).forEach(([n,v])=>{if(trpgState.stats[k][n]===undefined)trpgState.stats[k][n]=v})});
 function persistTRPG(){localStorage.setItem(trpgKey,JSON.stringify(trpgState))}
-let statsSaveTimer=null;async function syncOwnStats(){if(!authUser||!currentRole)return;const k=myCharacter();try{const {error}=await sb.from('survivors').update({personality:JSON.stringify(trpgState.stats[k]),updated_at:new Date().toISOString()}).eq('id',authUser.id);if(error)throw error;toast('능력치가 서버에 저장되었습니다.');}catch(err){console.error(err);toast('능력치 서버 저장 실패: '+err.message)}}
+let statsSaveTimer=null;async function syncOwnStats(){if(!authUser||!currentRole)return;const k=myCharacter();try{const {error}=await sb.from('survivors').update({stats:trpgState.stats[k],updated_at:new Date().toISOString()}).eq('id',authUser.id);if(error)throw error;toast('능력치가 서버에 저장되었습니다.');}catch(err){console.error(err);toast('능력치 서버 저장 실패: '+err.message)}}
 function statMarkup(k){let box=$('#stats'+k.toUpperCase());if(!box)return;box.innerHTML='';const editable=!!currentRole&&myCharacter()===k;const head=box.closest('.card')?.querySelector('.card-head');if(head){const title=k==='a'?'생존자 1 능력치':'생존자 2 능력치';head.innerHTML=title+' <small>'+(editable?'내 계정 · 수정 가능':'상대방 계정 · 읽기 전용')+'</small>';}Object.entries(trpgState.stats[k]).forEach(([name,val])=>{let row=document.createElement('div');row.style.marginBottom='9px';row.innerHTML=`<div class="split"><span class="notice">${name}</span><input aria-label="${name} 능력치" type="number" min="1" max="99" value="${val}" data-stat-owner="${k}" data-stat-name="${name}" class="field" style="width:75px;padding:5px;text-align:center" ${editable?'':'disabled'}></div><div class="bar"><i style="width:${val}%"></i></div>`;box.appendChild(row)});box.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',()=>{if(!currentRole||myCharacter()!==k){toast('본인 능력치만 수정할 수 있습니다.');statMarkup(k);return;}let v=Math.max(1,Math.min(99,Number(inp.value)||1));trpgState.stats[k][inp.dataset.statName]=v;inp.value=v;persistTRPG();statMarkup(k);clearTimeout(statsSaveTimer);statsSaveTimer=setTimeout(syncOwnStats,350)}))}
 statMarkup('a');statMarkup('b');
 function pushFeed(title,body,sub='시스템 진행'){trpgState.feed.unshift({title,body,sub,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})});trpgState.feed=trpgState.feed.slice(0,30);renderTRPGFeed();persistTRPG()}
