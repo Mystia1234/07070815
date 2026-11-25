@@ -626,9 +626,10 @@ async function syncProfileToCloud(k){
  const {data,error}=await sb.from('survivors').update({
   character_name:p.name,appearance:p.bio,avatar_data:p.img||null,
   last_seen_at:new Date().toISOString(),is_ready:false,updated_at:new Date().toISOString()
- }).eq('id',authUser.id).select('id').maybeSingle();
+ }).eq('id',authUser.id).select('id,avatar_data').maybeSingle();
  if(error)throw error;
  if(!data?.id)throw new Error('서버에서 프로필을 수정하지 못했습니다. Supabase survivors UPDATE 권한을 확인해 주세요.');
+  if((data.avatar_data||'')!==(p.img||''))throw new Error('사진 서버 저장 확인에 실패했습니다. 이미지 크기나 네트워크를 확인해 주세요.');
 }
 async function refreshCloudLobby(){
  if(!authUser||cloudSyncBusy)return;
