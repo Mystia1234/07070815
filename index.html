@@ -757,6 +757,9 @@ async function syncProfileToCloud(k){
  if(!data?.id)throw new Error('서버에서 프로필을 수정하지 못했습니다. Supabase survivors UPDATE 권한을 확인해 주세요.');
   if((data.avatar_data||'')!==(p.img||''))throw new Error('사진 서버 저장 확인에 실패했습니다. 이미지 크기나 네트워크를 확인해 주세요.');
 }
+const statsLocked={a:false,b:false};
+const trpgKey='dz2_trpg';
+let trpgState=JSON.parse(localStorage.getItem(trpgKey)||'null')||{turn:0,events:0,feed:[],stats:{a:{'힘':55,'민첩':60,'관찰':60,'지능':55,'운':50,'정신력':60,'건강':55,'매력':50,'은밀행동':50,'응급처치':45,'사격':30,'회피':30,'심리학':10,'듣기':50},b:{'힘':55,'민첩':60,'관찰':60,'지능':55,'운':50,'정신력':60,'건강':55,'매력':50,'은밀행동':50,'응급처치':45,'사격':30,'회피':30,'심리학':10,'듣기':50}}};
 async function refreshCloudLobby(){
  if(!authUser||cloudSyncBusy)return;
  try{
@@ -1021,9 +1024,7 @@ $('#importSave').addEventListener('click',()=>{const file=$('#importSaveFile').f
 $('#resetAll').addEventListener('click',()=>{if(confirm('이 기기에 저장된 프로필, 초상화, 역극, 기록, 소지품, 대기실 상태를 모두 지울까요?')){keys.forEach(k=>localStorage.removeItem(k));localStorage.removeItem(lobbyKey);location.reload()}});
 
 // 초보자용 TRPG 규칙: 백분율 주사위, 목표 능력치 이하 성공
-const statsLocked={a:false,b:false};
-const trpgKey='dz2_trpg';
-let trpgState=JSON.parse(localStorage.getItem(trpgKey)||'null')||{turn:0,events:0,feed:[],stats:{a:{'힘':55,'민첩':60,'관찰':60,'지능':55,'운':50,'정신력':60,'건강':55,'매력':50,'은밀행동':50,'응급처치':45,'사격':30,'회피':30,'심리학':10,'듣기':50},b:{'힘':55,'민첩':60,'관찰':60,'지능':55,'운':50,'정신력':60,'건강':55,'매력':50,'은밀행동':50,'응급처치':45,'사격':30,'회피':30,'심리학':10,'듣기':50}}};
+
 const eventPool=[
  ['멀리서 유리 깨지는 소리가 들린다. 누군가 아직 건물 안에 있는 걸까?','소리','주변을 확인하거나 몸을 숨길 수 있다.'],
  ['골목 끝에 비틀거리는 사람이 서 있다. 아직 감염자인지는 확실하지 않다.','조우','다가갈지, 피할지, 말을 걸지 결정할 수 있다.'],
