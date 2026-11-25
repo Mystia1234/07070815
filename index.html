@@ -247,7 +247,7 @@ a{color:#111!important}
   <button class="btn secondary" onclick="go('map')">다른 지역으로 이동</button>
   </div><div id="actionResult" class="action-result" aria-live="polite"><b>행동 결과</b><p>행동을 선택하면 판정 결과가 여기에 표시됩니다.</p></div></div></div>
  <div class="card"><div class="card-head">자유 행동 <small>원하는 행동 직접 입력</small></div><div class="card-body"><textarea class="field" id="actionFreeText" rows="3" placeholder="예: 편의점 셔터를 조금 들어 올리고 안쪽을 살핀다."></textarea><div class="row" style="margin-top:8px"><select class="field" id="actionFreeStat" style="max-width:150px"><option>관찰</option><option>민첩</option><option>힘</option><option>지능</option><option>운</option></select><button class="btn" id="actionFreeGo">행동 실행 / 판정</button></div></div></div>
- <p class="hint">행동 결과와 주사위 로그는 TRPG 진행 메뉴에 누적됩니다. 이 프로토타입에서는 행동 결과가 서술 로그로 기록되며, 실제 체력·감염도 변화 규칙은 아직 적용되지 않았습니다.</p>
+ <p class="hint">행동을 실행하면 D100 판정이 즉시 진행되고, 결과는 이 화면과 TRPG 진행 기록에 함께 남습니다. 이동은 주변 지역에서 선택하세요.</p>
 </div>
 
 <div class="page" id="page-items">
@@ -409,7 +409,7 @@ function showProfileGate(){
 function applyLogin(account){
  currentRole=account.role;sender=account.character;document.body.classList.add('logged-in');$('#loginScreen').style.display='none';
  $('#activeAccount').textContent=account.label+' 접속 중';$('#chatRoleHint').textContent=account.label+' · '+(sender==='a'?'생존자 1':'생존자 2')+' 계정으로 작성합니다.';
- const actor=$('#actorSelect');if(actor){actor.value=sender;[...actor.options].forEach(o=>o.disabled=o.value!==sender);actor.disabled=true;}
+ const actor=$('#actorSelect');if(actor){actor.value=sender;[...actor.options].forEach(o=>o.disabled=o.value!==sender);actor.disabled=true;}const actionActor=$('#actionActor');if(actionActor){actionActor.value=sender;actionActor.disabled=true;}
  $('#chatInput').placeholder=(sender==='a'?'HO1':'HO2')+'로 역극을 작성하세요...';
  applyProfilePermissions();
  const own=account.character;
