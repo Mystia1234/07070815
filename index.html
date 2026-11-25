@@ -905,7 +905,7 @@ async function saveMyProfile(name,bio){
  profiles[k].name=name.trim()||(k==='a'?'생존자 1':'백재하');
  profiles[k].bio=bio.trim();profiles[k].saved=true;
  if(!lobbyState.gameStarted){lobbyState[k]={ready:false,joinedAt:null};persistLobby();}
- save(keys[0],profiles);renderProfiles();renderMessages();renderLobby();
+ save(keys[0],profiles);renderProfiles();renderRpV2();renderLobby();
  const saveButtons=[$('#saveProfiles'),$('#gateSaveProfile')].filter(Boolean);
  saveButtons.forEach(b=>{b.disabled=true;b.dataset.oldText=b.textContent;b.textContent='서버 저장 중…'});
  try{
