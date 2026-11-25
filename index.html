@@ -572,7 +572,9 @@ function applyLogin(account){
  $('#rpV2Input').placeholder=(sender==='a'?'HO1':'HO2')+'로 역극을 작성하세요...';
  applyProfilePermissions();
  const own=account.character;
- if(lobbyState[own]?.ready){$('#loginScreen').style.display='none';$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.add('show');renderLobby();if(lobbyState.gameStarted)enterGame();}
+ // 인증이 끝나면 로그인 레이어를 먼저 닫아 다음 화면을 가리지 않도록 한다.
+ $('#loginScreen').style.display='none';
+ if(lobbyState[own]?.ready){$('#profileGate').classList.remove('show');$('#lobbyScreen').classList.add('show');renderLobby();if(lobbyState.gameStarted)enterGame();}
  else showProfileGate();
 }
 $('#loginForm').addEventListener('submit',async e=>{
