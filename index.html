@@ -542,6 +542,8 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const accountForRole=role=>({role,character:role==='ho1'?'a':'b',label:role.toUpperCase()});
 const emailForId=id=>{const v=String(id||'').trim().toLowerCase();if(v==='ho1@deadzone.local'||v==='ho11111')return 'ho1@deadzone.local';if(v==='ho2@deadzone.local'||v==='ho22222')return 'ho2@deadzone.local';return null;};
 let authUser=null;
+// 능력치 잠금 상태는 로그인/세션 복원보다 먼저 초기화
+var statsLocked={a:false,b:false};
 let cloudSyncBusy=false;
 const lobbyKey='dz2_lobby_state';
 let lobbyState=JSON.parse(localStorage.getItem(lobbyKey)||'null')||{a:{ready:false,joinedAt:null},b:{ready:false,joinedAt:null},gameStarted:false};
@@ -757,7 +759,7 @@ async function syncProfileToCloud(k){
  if(!data?.id)throw new Error('서버에서 프로필을 수정하지 못했습니다. Supabase survivors UPDATE 권한을 확인해 주세요.');
   if((data.avatar_data||'')!==(p.img||''))throw new Error('사진 서버 저장 확인에 실패했습니다. 이미지 크기나 네트워크를 확인해 주세요.');
 }
-const statsLocked={a:false,b:false};
+
 const trpgKey='dz2_trpg';
 let trpgState=JSON.parse(localStorage.getItem(trpgKey)||'null')||{turn:0,events:0,feed:[],stats:{a:{'힘':55,'민첩':60,'관찰':60,'지능':55,'운':50,'정신력':60,'건강':55,'매력':50,'은밀행동':50,'응급처치':45,'사격':30,'회피':30,'심리학':10,'듣기':50},b:{'힘':55,'민첩':60,'관찰':60,'지능':55,'운':50,'정신력':60,'건강':55,'매력':50,'은밀행동':50,'응급처치':45,'사격':30,'회피':30,'심리학':10,'듣기':50}}};
 async function refreshCloudLobby(){
