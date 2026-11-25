@@ -444,12 +444,12 @@ let pageTrail=['start'];
 function go(page,subPage=null){
  const aliases={map:'activities',actions:'activities',rp:'activities',trpg:'activities',items:'activities',save:'activities'};
  if(aliases[page]){subPage=page;page='activities';}
- $('.nav button').forEach(button=>button.classList.toggle('active',button.dataset.page===page));
- $('.page').forEach(panel=>panel.classList.toggle('active',panel.id==='page-'+page));
+ $$('.nav button').forEach(button=>button.classList.toggle('active',button.dataset.page===page));
+ $$('.page').forEach(panel=>panel.classList.toggle('active',panel.id==='page-'+page));
  if(page==='activities'){
   const target=subPage||$('#page-activities .activity-tab.active')?.dataset.activity||'map';
-  $('#page-activities .activity-panel').forEach(panel=>panel.classList.toggle('active-panel',panel.id==='activity-'+target));
-  $('#page-activities .activity-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.activity===target));
+  $$('#page-activities .activity-panel').forEach(panel=>panel.classList.toggle('active-panel',panel.id==='activity-'+target));
+  $$('#page-activities .activity-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.activity===target));
  }
  window.scrollTo({top:0,behavior:'auto'});
 }
@@ -460,9 +460,9 @@ function goBack(){
  if(!previous)previous='start';
  go(previous,true);
 }
-$('.nav button').forEach(button=>button.addEventListener('click',()=>go(button.dataset.page)));
-$('#page-activities .activity-tab').forEach(button=>button.addEventListener('click',()=>go('activities',button.dataset.activity)));
-$$('.page').forEach(page=>{
+$$('.nav button').forEach(button=>button.addEventListener('click',()=>go(button.dataset.page)));
+$$('#page-activities .activity-tab').forEach(button=>button.addEventListener('click',()=>go('activities',button.dataset.activity)));
+$$$('.page').forEach(page=>{
  if(page.id==='page-start'||page.id==='page-activities')return;
  const head=page.querySelector('.content-head');
  if(!head||page.querySelector('.page-backbar'))return;
