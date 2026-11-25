@@ -584,6 +584,7 @@ function applyLiveEvent(ev){
  applyingRemoteEvent=true;
  try{
   if(ev.type==='chat'){const m=ev.payload;if(!dzChatHistory.some(x=>x.at&&x.at===m.at&&x.by===m.by)){dzChatHistory.push(m);dzChatHistory=dzChatHistory.slice(-100);localStorage.setItem(dzChatKey,JSON.stringify(dzChatHistory));renderDzChat();}}
+  else if(ev.type==='roleplay'){const m=ev.payload;if(!messages.some(x=>x.liveId&&x.liveId===m.liveId)){messages.push(m);messages=messages.slice(-200);save(keys[1],messages);renderMessages();}}
   else if(ev.type==='feed'){const f=ev.payload;if(!trpgState.feed.some(x=>x.liveAt===f.liveAt&&x.title===f.title)){trpgState.feed.unshift(f);trpgState.feed=trpgState.feed.slice(0,30);renderTRPGFeed();persistTRPG();}}
   else if(ev.type==='survival'&&ev.payload?.state){applyingRemoteState=true;survival=ev.payload.state;localStorage.setItem(survivalKey,JSON.stringify(survival));renderSurvival();applyingRemoteState=false;}
  }finally{applyingRemoteEvent=false;applyingRemoteState=false}
@@ -652,7 +653,7 @@ function renderMessages(){
  $('#msgCount').textContent=messages.length+'개 메시지';box.scrollTop=box.scrollHeight;save(keys[1],messages);
 }
 renderMessages();
-$('#chatForm').addEventListener('submit',e=>{e.preventDefault();let text=$('#chatInput').value.trim();if(!text)return;let p=profiles[sender];messages.push({key:sender,name:p.name,text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}),mine:true});$('#chatInput').value='';renderMessages()});
+$('#chatForm').addEventListener('submit',e=>{e.preventDefault();let text=$('#chatInput').value.trim();if(!text)return;let p=profiles[sender];const entry={key:sender,name:p.name,text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}),mine:true,liveId:(authUser?.id||sender)+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)};messages.push(entry);$('#chatInput').value='';renderMessages();publishLiveEvent('roleplay',entry)});
 // 로그인 계정에 따라 작성 캐릭터가 고정됩니다.
 $('#clearChat').addEventListener('click',()=>{if(confirm('역극 기록을 모두 비울까요?')){messages=[];renderMessages();toast('역극 기록을 비웠습니다.')}});
 
