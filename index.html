@@ -500,10 +500,12 @@ input,textarea,select,.field{background:#fff!important;border:2px solid #000!imp
 </div>
 <script>
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
-const keys=['dz2_profiles','dz2_messages','dz2_logs','dz2_items'];
+const keys=['dz2_profiles','dz2_rp_v2_backup_slot','dz2_logs','dz2_items'];
+// 구형 로컬 역극 기록은 더 이상 사용하지 않는다.
+localStorage.removeItem('dz2_messages');
 let profiles=JSON.parse(localStorage.getItem(keys[0])||'null')||{a:{name:'생존자 1',bio:'',img:''},b:{name:'생존자 2',bio:'',img:''}};
 ['a','b'].forEach(k=>{const fallback=k==='a'?'생존자 1':'생존자 2';if(profiles[k] && !profiles[k].saved && ((profiles[k].name&&profiles[k].name!==fallback)||profiles[k].bio||profiles[k].img))profiles[k].saved=true;});
-let messages=JSON.parse(localStorage.getItem(keys[1])||'[]'),logs=JSON.parse(localStorage.getItem(keys[2])||'[]'),items=JSON.parse(localStorage.getItem(keys[3])||'[]');
+let logs=JSON.parse(localStorage.getItem(keys[2])||'[]'),items=JSON.parse(localStorage.getItem(keys[3])||'[]');
 let sender='a';
 let currentLocation=localStorage.getItem('dz2_current_location')||'안전지대';
 const locationKey='dz2_survivor_locations';
@@ -715,11 +717,11 @@ async function startLiveSync(){
    if(restoredSurvival&&restoredLocations.a&&restoredLocations.b&&restoredActivities.a&&restoredActivities.b)break;
   }
   Object.assign(survivorLocations,restoredLocations);Object.assign(survivorActivities,restoredActivities);saveSurvivorLocations();saveSurvivorActivities();renderSurvivorLocations();
-  setLiveStatus('서버 연결됨 · 공통 기록 '+messages.length+'개 불러옴');
+  setLiveStatus('공용 게임 데이터 서버 연결됨');
  }catch(err){
   applyingRemoteState=false;console.error('실시간 동기화 시작 실패',err);
   setLiveStatus('연결 실패: '+(err.message||'game_logs SELECT 권한 확인'),true);
-  toast('역극 서버 연결 실패: '+(err.message||'game_logs 조회 권한을 확인해 주세요.'));
+  toast('공용 게임 데이터 연결 실패: '+(err.message||'game_logs 조회 권한을 확인해 주세요.'));
   return;
  }
  liveTimer=setInterval(pollLiveEvents,1200);pollLiveEvents();
@@ -868,7 +870,6 @@ $('#chatForm').addEventListener('submit',async e=>{
  try{
   await rpV2Write('message',message);
   input.value='';rpWriteStatus('서버 저장 성공');await rpV2Refresh();
-  setSurvivorActivity(sender,'역극 작성 · '+text.replace(/\s+/g,' ').slice(0,35));
  }catch(err){
   console.error('역극 저장 실패',err);rpWriteStatus('서버 저장 실패: '+(err.message||'INSERT 권한 확인'),true);
   toast('역극을 서버에 저장하지 못했습니다: '+(err.message||'권한을 확인해 주세요.'));
@@ -1013,7 +1014,7 @@ $$('.action-shortcut').forEach(b=>b.addEventListener('click',()=>launchAction(b.
 $('#actionFreeGo').addEventListener('click',()=>{const t=$('#actionFreeText').value.trim();if(!t){toast('행동을 입력해 주세요.');return;}launchAction(t,$('#actionFreeStat').value);$('#actionFreeText').value='';});
 function saveSnapshot(){const names=[...keys,lobbyKey,'dz2_trpg','dz2_ai_config','dz2_ai_history','dz2_current_location',locationKey,'dz2_survival','dz2_clues','dz2_threats','dz2_active_threat'];const data={format:'DEAD_ZONE_SAVE',version:2,createdAt:new Date().toISOString(),values:{}};names.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data.values[k]=v});return data;}
 function downloadSnapshot(){const blob=new Blob([JSON.stringify(saveSnapshot(),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='DEAD_ZONE_SAVE_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);}
-$('#saveNow').addEventListener('click',()=>{keys.forEach((k,i)=>localStorage.setItem(k,JSON.stringify([profiles,messages,logs,items][i])));localStorage.setItem('dz2_trpg',JSON.stringify(trpgState));localStorage.setItem(lobbyKey,JSON.stringify(lobbyState));localStorage.setItem('dz2_current_location',currentLocation);saveSurvivorLocations();localStorage.setItem('dz2_survival',JSON.stringify(survival));localStorage.setItem('dz2_clues',JSON.stringify(clues));if(activeThreat)localStorage.setItem('dz2_active_threat',JSON.stringify(activeThreat));$('#autosaveStatus').textContent='저장 완료 · '+new Date().toLocaleString('ko-KR');toast('현재 게임을 저장했습니다.')});
+$('#saveNow').addEventListener('click',()=>{keys.forEach((k,i)=>localStorage.setItem(k,JSON.stringify([profiles,[],logs,items][i])));localStorage.setItem('dz2_trpg',JSON.stringify(trpgState));localStorage.setItem(lobbyKey,JSON.stringify(lobbyState));localStorage.setItem('dz2_current_location',currentLocation);saveSurvivorLocations();localStorage.setItem('dz2_survival',JSON.stringify(survival));localStorage.setItem('dz2_clues',JSON.stringify(clues));if(activeThreat)localStorage.setItem('dz2_active_threat',JSON.stringify(activeThreat));$('#autosaveStatus').textContent='저장 완료 · '+new Date().toLocaleString('ko-KR');toast('현재 게임을 저장했습니다.')});
 $('#exportSave').addEventListener('click',downloadSnapshot);
 $('#importSave').addEventListener('click',()=>{const file=$('#importSaveFile').files[0];if(!file){toast('먼저 저장 파일을 선택해 주세요.');return;}const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(data.format!=='DEAD_ZONE_SAVE'||!data.values)throw new Error('형식 오류');if(!confirm('현재 저장 데이터를 백업 파일 내용으로 교체할까요?'))return;Object.entries(data.values).forEach(([k,v])=>localStorage.setItem(k,v));toast('저장 파일을 불러왔습니다. 화면을 새로고침합니다.');setTimeout(()=>location.reload(),700);}catch(e){toast('올바른 DEAD ZONE 저장 파일이 아닙니다.');}};reader.readAsText(file)});
 
