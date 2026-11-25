@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101511">
+<title>데드 존 | 생존자 기록망</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+:root{--bg:#0c110e;--panel:#151d18;--panel2:#1b261f;--line:#35443a;--muted:#9aa99d;--text:#e0e8e1;--green:#b4cba8;--bright:#d3e6c8;--red:#df766b;--amber:#e0bd79;--mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -25%,#2a3a2e 0%,transparent 55%),var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.09;background-image:linear-gradient(rgba(180,210,180,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(180,210,180,.06) 1px,transparent 1px);background-size:4px 4px;z-index:5}
+button,input,textarea{font:inherit}button{cursor:pointer}.topbar{height:58px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#0b100eef;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}
+.brand{font:600 14px var(--mono);letter-spacing:1px;color:var(--bright)}.brand b{color:var(--red)}.top-right{display:flex;gap:15px;align-items:center;color:var(--muted);font:11px var(--mono)}.dot{display:inline-block;width:7px;height:7px;background:#a4c78d;border-radius:50%;box-shadow:0 0 8px #a4c78d;margin-right:6px}
+.shell{max-width:1220px;margin:auto;padding:22px 20px 45px}.hero{border:1px solid var(--line);background:linear-gradient(115deg,#1c2a20ed,#111914f5 68%);padding:25px 28px;position:relative;overflow:hidden;margin-bottom:17px}.eyebrow{font:11px var(--mono);letter-spacing:1.5px;color:var(--green)}.hero h1{font:700 clamp(27px,5vw,40px) var(--mono);letter-spacing:1px;margin:9px 0 7px;color:#e6ede5}.hero h1 b{color:var(--red)}.hero p{color:#b5c2b7;margin:0;line-height:1.8}.hero-meta{display:flex;gap:18px;margin-top:18px;flex-wrap:wrap;font:11px var(--mono);color:var(--muted)}.hero-meta strong{color:var(--amber);font-weight:500}
+.layout{display:grid;grid-template-columns:205px minmax(0,1fr);gap:17px}.card{background:linear-gradient(145deg,#19231c,#121914);border:1px solid var(--line);margin-bottom:14px;min-width:0}.card-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--green);gap:10px}.card-head small{font:10px var(--mono);color:var(--muted)}.card-body{padding:14px}.nav{display:grid;gap:4px;padding:8px}.nav button{border:1px solid transparent;background:transparent;color:#b0bcb2;text-align:left;padding:11px 10px;font-size:12px;display:flex;justify-content:space-between}.nav button:hover,.nav button.active{background:#29392d;border-color:#536b56;color:var(--bright)}.nav small{color:#8d9b90;font:10px var(--mono)}
+.notice{font-size:11px;color:#b2beb4;line-height:1.75}.notice strong{color:var(--amber)}.content-head{display:flex;justify-content:space-between;align-items:end;margin:0 0 13px;gap:10px}.content-head h2{font:600 20px var(--mono);margin:4px 0 0;letter-spacing:.5px}.tag{font-size:10px;border:1px solid #60775f;color:var(--green);padding:5px 8px;white-space:nowrap}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stat{background:#0e1511;border:1px solid var(--line);padding:11px}.stat label{display:block;color:var(--muted);font-size:10px;margin-bottom:7px}.stat strong{font:600 20px var(--mono);color:var(--bright)}.stat em{display:block;font-size:10px;color:var(--muted);font-style:normal;margin-top:4px}.bar{height:5px;background:#2b382f;margin-top:7px}.bar i{display:block;height:100%;background:var(--green)}.bar.red i{background:var(--red)}.bar.amber i{background:var(--amber)}
+.person{display:flex;gap:12px;align-items:center}.portrait{width:72px;height:82px;flex:0 0 72px;border:1px solid #61775f;background:linear-gradient(145deg,#354638,#17221a);display:grid;place-items:center;color:#d0e0c7;font:600 22px var(--mono);overflow:hidden;position:relative}.portrait img{width:100%;height:100%;object-fit:cover}.person h3{font-size:15px;margin:0 0 4px}.person p{margin:0;color:var(--muted);font-size:10px}.line{height:1px;background:var(--line);margin:13px 0}.statusline{margin-top:11px;display:flex;justify-content:space-between;color:#bdc8bf;font-size:11px}.statusline b{font:11px var(--mono);color:var(--green)}
+.feed-item{padding:11px 0;border-bottom:1px solid #2a382e;display:grid;grid-template-columns:62px 1fr;gap:9px}.feed-item:last-child{border:0}.feed-time{font:10px var(--mono);color:var(--amber)}.feed-item p{margin:0;color:#d0d9d1;line-height:1.65;font-size:12px}.feed-item small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.page{display:none}.page.active{display:block}.map{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.zone{min-height:105px;border:1px solid var(--line);background:#0e1511;padding:12px;text-align:left;color:var(--text);position:relative}.zone:hover{border-color:var(--green);background:#1b2920}.zone b{display:block;font-size:12px;margin:0 0 7px}.zone span{font-size:10px;color:var(--muted);line-height:1.6}.zone .danger{position:absolute;right:8px;top:8px;color:var(--red);font-size:9px}
+.inventory{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.item{border:1px solid var(--line);background:#0e1511;padding:12px;min-height:88px}.item .ico{font-size:19px}.item b{display:block;font-size:11px;margin:6px 0 3px}.item small{color:var(--muted);font-size:10px}
+.chatbox{height:430px;display:flex;flex-direction:column}.messages{padding:14px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:11px}.msg{max-width:88%;border:1px solid var(--line);background:#1a261e;padding:10px 12px;align-self:flex-start}.msg.mine{align-self:flex-end;border-color:#5a7657;background:#213126}.msg .who{font-size:10px;color:var(--green);margin-bottom:6px;display:flex;align-items:center;gap:7px}.mini{width:22px;height:22px;border:1px solid #5b705a;object-fit:cover}.msg p{margin:0;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}.msg time{display:block;text-align:right;color:#9aa99d;font:9px var(--mono);margin-top:6px}.composer{border-top:1px solid var(--line);padding:10px;display:flex;gap:8px}.composer textarea{resize:vertical;min-height:45px;max-height:120px;flex:1;background:#0b100e;border:1px solid var(--line);color:var(--text);padding:10px;outline:none}
+.btn{border:1px solid #657f61;background:#2b3d2e;color:#e0ebdc;padding:9px 12px;font-size:11px}.btn:hover{background:#3b523e}.btn.secondary{border-color:var(--line);background:#111914;color:#c1ccc3}.btn.danger{border-color:#75433e;background:#3a211f;color:#e8b0a8}.field{width:100%;background:#0b100e;border:1px solid var(--line);color:var(--text);padding:10px;outline:none}.field:focus,textarea:focus{border-color:#829b7c}label{display:block}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.log-entry{border-left:2px solid #71896b;padding:3px 0 13px 13px;margin-left:5px}.log-entry time{font:10px var(--mono);color:var(--amber)}.log-entry p{margin:6px 0;color:#d0d9d1;line-height:1.75}.foot{text-align:center;color:#89978c;font-size:10px;padding:23px 0 0;letter-spacing:.5px}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#293b2d;border:1px solid #70866b;color:#e3eee0;padding:10px 15px;font-size:11px;z-index:30;opacity:0;pointer-events:none;transition:.2s;max-width:90%;text-align:center}.toast.show{opacity:1}
+.intro{border:1px solid #5a4935;background:linear-gradient(145deg,#211e18,#151914);padding:18px;margin-bottom:14px}.intro h3{margin:0 0 9px;color:#e6c78f;font-size:15px}.intro p{color:#d2d0c5;line-height:1.9;margin:0 0 9px;font-size:12px}.intro .sub{color:#aeb7ad;font-size:10px}.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.uploadbox{display:flex;gap:12px;align-items:center}.uploadbox .portrait{width:90px;height:105px;flex-basis:90px}.uploadbox input{max-width:100%;font-size:10px;color:var(--muted)}.hint{font-size:10px;color:var(--muted);line-height:1.6;margin-top:7px}
+
+/* HO1 / HO2 로그인 */
+body:not(.logged-in)>header,body:not(.logged-in)>main,body:not(.logged-in)>.toast{display:none!important}
+.login-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 0%,#2a3a2e 0%,transparent 58%),#0c110e;display:grid;place-items:center;padding:20px}
+.login-panel{width:min(100%,420px);border:1px solid #536a55;background:linear-gradient(145deg,#19251d,#101712);padding:26px;box-shadow:0 20px 70px #0009}
+.login-kicker{font:11px var(--mono);letter-spacing:2px;color:var(--green)}
+.login-panel h1{font:700 34px var(--mono);margin:12px 0 5px;color:#e6ede5}.login-panel h1 b{color:var(--red)}
+.login-desc{color:#aebbb0;font-size:12px;line-height:1.8;margin:0 0 20px}
+.login-panel label{font-size:11px;color:var(--green);margin:12px 0 6px}
+.login-panel .btn{width:100%;margin-top:16px;padding:12px}
+.login-error{min-height:18px;color:var(--red);font-size:11px;margin-top:10px}
+.account-badge{color:var(--amber);font:10px var(--mono);border:1px solid #695b3b;padding:5px 8px}
+@media(max-width:480px){.login-panel{padding:21px}.login-panel h1{font-size:30px}}
+
+@media(max-width:760px){.topbar{padding:0 13px}.top-right{gap:8px;font-size:9px}.shell{padding:13px 10px 30px}.hero{padding:19px 15px}.layout{grid-template-columns:1fr;gap:8px}.nav{display:flex;overflow-x:auto;gap:4px;padding:7px}.nav button{white-space:nowrap;padding:10px}.nav small{display:none}.sidebar .card:not(.nav-card){display:none}.grid2,.setup-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.map{grid-template-columns:repeat(2,1fr)}.inventory{grid-template-columns:repeat(2,1fr)}.content-head h2{font-size:17px}.hero-meta{gap:10px}.chatbox{height:58vh;min-height:340px}.composer{padding:8px}.composer .btn{padding:8px}.person .portrait{width:62px;height:72px;flex-basis:62px}}
+</style>
+</head>
+<body>
+<div class="login-screen" id="loginScreen">
+ <form class="login-panel" id="loginForm">
+  <div class="login-kicker">SURVIVOR AUTHENTICATION · HO1 / HO2</div>
+  <h1>DEAD <b>ZONE</b></h1>
+  <p class="login-desc">생존자 기록망에 접속하려면<br>지정된 계정 정보로 로그인하세요.</p>
+  <label for="loginId">아이디</label><input class="field" id="loginId" autocomplete="username" placeholder="지정된 아이디" required>
+  <label for="loginPassword">비밀번호</label><input class="field" id="loginPassword" type="password" autocomplete="current-password" placeholder="비밀번호" required>
+  <button class="btn" type="submit">기록망 접속 →</button>
+  <div class="login-error" id="loginError" role="alert"></div>
+  <div class="hint">등록된 계정: HO1 / HO2</div>
+ </form>
+</div>
+
+<header class="topbar"><div class="brand">데드 존 <b>//</b> 생존자 기록망</div><div class="top-right"><span><i class="dot"></i>기록 장치 작동 중</span><span id="activeAccount" class="account-badge">미접속</span><button class="btn secondary" id="logoutButton" style="padding:5px 8px">로그아웃</button><span id="clock">--:--:--</span></div></header>
+<main class="shell">
+<section class="hero">
+ <div class="eyebrow">긴급 재난 통신망 · 생존자 단말기</div>
+ <h1>DEAD <b>ZONE</b></h1>
+ <p>기록은 살아남은 자의 몫이다.<br>당신의 이야기는 이곳에서 시작된다.</p>
+ <div class="hero-meta"><span>발생 경과 <strong id="dayLabel">첫째 날</strong></span><span>현재 위치 <strong>미확인 지역</strong></span><span>위험 단계 <strong style="color:var(--red)">판단 불가</strong></span><span>접속 상태 <strong>개인 기록 모드</strong></span></div>
+</section>
+<div class="layout">
+<aside class="sidebar">
+ <div class="card"><div class="card-head">기록 메뉴 <small>01—07</small></div><nav class="nav">
+ <button class="active" data-page="start">▣ 시작 화면 <small>01</small></button>
+ <button data-page="people">♟ 생존자 <small>02</small></button>
+ <button data-page="map">⌖ 주변 지역 <small>03</small></button>
+ <button data-page="items">▤ 소지품 <small>04</small></button>
+ <button data-page="rp">✉ 역극 통신 <small>05</small></button>
+ <button data-page="trpg">🎲 TRPG 진행 <small>06</small></button>
+ <button data-page="journal">▧ 생존 기록 <small>07</small></button>
+ <button data-page="config">⚙ 설정 <small>08</small></button>
+ </nav></div>
+ <div class="card"><div class="card-head">저장 안내</div><div class="card-body notice">현재 입력한 내용은 이 기기의 브라우저에 저장됩니다. 다른 사람과 실시간으로 공유하려면 추후 공동 접속 기능을 연결해야 합니다.</div></div>
+</aside>
+<section class="content">
+<div class="page active" id="page-start">
+ <div class="content-head"><div><div class="eyebrow">재난 발생 첫날</div><h2>상황 보고</h2></div><span class="tag">서막 · 00일</span></div>
+ <div class="intro">
+  <h3>2026년 11월 25일 — 평범했던 하루의 끝</h3>
+  <p>처음에는 단순한 사고라고 생각했다. 도로 한복판에서 사람이 사람을 물어뜯었다는 신고가 들어왔고, 몇 분 뒤에는 비슷한 영상이 인터넷에 쏟아졌다. 방송은 외출을 자제하라는 말만 반복했다. 누군가는 가짜 뉴스라고 비웃었고, 누군가는 이미 현관문을 잠그고 있었다.</p>
+  <p>해가 기울 무렵, 휴대전화 신호가 끊기기 시작했다. 멀리서 사이렌이 울렸다. 창밖의 풍경은 어제와 똑같은데, 그 안을 걷는 사람들의 모습만 어딘가 달라져 있었다.</p>
+  <p>아직 무엇이 일어났는지 정확히 아는 사람은 없다. 감염이 어디까지 퍼졌는지도, 내일 아침이 오기는 할지도 모른다. 다만 분명한 사실이 하나 있다. 이제부터는 스스로 판단하고 살아남아야 한다는 것.</p>
+  <div class="sub">※ 위 내용은 시작을 위한 도입부입니다. 이후 사건, 장소, 관계, 생존 방식은 두 캐릭터의 역극으로 자유롭게 정할 수 있습니다.</div>
+ </div>
+ <div class="card"><div class="card-head">현재 생존자 <small>등록된 인원 2명</small></div><div class="card-body grid2" id="startPeople">
+  <div class="person"><div class="portrait" id="smallPortraitA">A</div><div><h3 id="startNameA">생존자 A</h3><p>첫 번째 기록자</p></div></div>
+  <div class="person"><div class="portrait" id="smallPortraitB">B</div><div><h3 id="startNameB">생존자 B</h3><p>두 번째 기록자</p></div></div>
+ </div></div>
+ <div class="card"><div class="card-head">오늘의 기록 <small>상황은 아직 유동적</small></div><div class="card-body"><div class="stats">
+  <div class="stat"><label>생존 경과</label><strong id="dayNumber">00일</strong><em>사태 발생 당일</em></div>
+  <div class="stat"><label>생존자</label><strong>02명</strong><em>두 사람의 이야기</em></div>
+  <div class="stat"><label>감염 여부</label><strong style="color:var(--amber)">미상</strong><em>확인된 정보 없음</em></div>
+  <div class="stat"><label>안전 지역</label><strong style="color:var(--red)">미확인</strong><em>직접 확인 필요</em></div>
+ </div></div></div>
+ <div class="card"><div class="card-head">첫 번째 통신 <small>시작하기</small></div><div class="card-body"><p class="notice">두 캐릭터의 이름과 초상화를 먼저 등록한 뒤, 역극 통신 메뉴에서 첫 대사를 주고받아 보세요. 처음 마주친 장소와 상황도 자유롭게 정할 수 있습니다.</p><button class="btn" onclick="go('config')">생존자 정보 등록하기 →</button></div></div>
+</div>
+
+<div class="page" id="page-people">
+ <div class="content-head"><div><div class="eyebrow">생존자 명부</div><h2>생존자</h2></div><span class="tag">2인 기록</span></div>
+ <div class="grid2">
+  <div class="card"><div class="card-head">기록자 A <small>첫 번째 인물</small></div><div class="card-body"><div class="person"><div class="portrait" id="portraitA">A</div><div><h3 id="profileNameA">생존자 A</h3><p>상세 정보는 설정에서 입력</p></div></div><div class="line"></div><p class="notice" id="bioA">아직 등록된 소개가 없습니다.</p></div></div>
+  <div class="card"><div class="card-head">기록자 B <small>두 번째 인물</small></div><div class="card-body"><div class="person"><div class="portrait" id="portraitB">B</div><div><h3 id="profileNameB">생존자 B</h3><p>상세 정보는 설정에서 입력</p></div></div><div class="line"></div><p class="notice" id="bioB">아직 등록된 소개가 없습니다.</p></div></div>
+ </div>
+ <p class="notice">체력, 허기, 감염도 등의 수치는 현재 고정된 설정이 아닙니다. 실제 진행에 맞춰 추후 자유롭게 추가할 수 있습니다.</p>
+</div>
+
+<div class="page" id="page-map">
+ <div class="content-head"><div><div class="eyebrow">주변 탐색</div><h2>주변 지역</h2></div><span class="tag">정보 미확인</span></div>
+ <div class="card"><div class="card-head">탐색 후보 지역 <small>장소를 눌러 기록</small></div><div class="card-body"><div class="map">
+ <button class="zone" data-zone="주거 지역"><b>01 / 주거 지역</b><span>불이 켜진 창문이 드문드문 보인다.<br>내부 상황은 알 수 없다.</span><i class="danger">미확인</i></button>
+ <button class="zone" data-zone="편의점"><b>02 / 편의점</b><span>출입문이 열려 있는 듯하다.<br>물자가 남아 있을까?</span><i class="danger">미확인</i></button>
+ <button class="zone" data-zone="병원"><b>03 / 병원</b><span>구급차 사이렌이 멈췄다.<br>가까이 가는 것은 위험할 수 있다.</span><i class="danger">주의</i></button>
+ <button class="zone" data-zone="지하철역"><b>04 / 지하철역</b><span>역 안쪽에서 희미한 소음이 들린다.<br>대피자가 있을지도 모른다.</span><i class="danger">미확인</i></button>
+ <button class="zone" data-zone="경찰서"><b>05 / 경찰서</b><span>비상 방송이 반복되고 있다.<br>상황은 알 수 없다.</span><i class="danger">주의</i></button>
+ <button class="zone" data-zone="미정의 장소"><b>06 / 기타 장소</b><span>두 사람이 직접 정한 장소를<br>기록할 수 있다.</span><i class="danger">자유 입력</i></button>
+ </div></div></div><p class="notice">지도는 분위기 확인용 예시입니다. 실제 이동 경로와 장소는 역극에서 자유롭게 정하세요.</p>
+</div>
+
+<div class="page" id="page-items">
+ <div class="content-head"><div><div class="eyebrow">소지품 기록</div><h2>소지품</h2></div><span class="tag">초기 상태 미정</span></div>
+ <div class="card"><div class="card-head">공동 물자 <small>직접 설정 가능</small></div><div class="card-body"><p class="notice">처음부터 정해진 아이템은 없습니다. 두 캐릭터가 가진 물건을 역극으로 정하고, 아래 기록란에 적어 두세요.</p><div id="itemList" class="inventory"></div><form id="itemForm" class="row" style="margin-top:12px"><input class="field" id="itemName" placeholder="물건 이름" required style="flex:1;min-width:120px"><input class="field" id="itemQty" placeholder="수량 / 메모" style="flex:1;min-width:100px"><button class="btn">추가 +</button></form></div></div>
+</div>
+
+<div class="page" id="page-rp">
+ <div class="content-head"><div><div class="eyebrow">두 사람의 비공개 기록</div><h2>역극 통신</h2></div><span class="tag">이 기기에 저장</span></div>
+ <div class="card"><div class="card-head"><span>대화 기록</span><small id="msgCount">0개 메시지</small></div><div class="chatbox"><div class="messages" id="messages"><div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div></div><form class="composer" id="chatForm"><textarea id="chatInput" placeholder="대사와 지문을 자유롭게 입력하세요..." required></textarea><button class="btn" type="submit">보내기 ↗</button></form></div></div>
+ <div class="row"><span class="hint" id="chatRoleHint">로그인한 계정의 캐릭터로 작성합니다.</span><button class="btn secondary" id="clearChat">대화 기록 비우기</button></div>
+ <p class="hint">로그인한 계정(HO1 또는 HO2)에 지정된 캐릭터로만 작성할 수 있습니다. 서로 다른 휴대폰에서 실시간으로 주고받는 기능은 데이터베이스 연결 후 구현됩니다.</p>
+</div>
+
+
+<div class="page" id="page-trpg">
+ <div class="content-head"><div><div class="eyebrow">자동 진행 · 초보자 모드</div><h2>TRPG 생존 진행</h2></div><span class="tag">시스템 진행자 작동 중</span></div>
+ <div class="intro">
+  <h3>진행 방법은 간단합니다</h3>
+  <p>행동을 선택하고 결과를 확인하세요. 주사위 굴림, 성공 여부, 사건 발생은 시스템이 자동으로 처리합니다. 규칙을 외우거나 직접 계산할 필요가 없습니다.</p>
+  <div class="sub">기본 판정: 1~100 주사위 / 굴림값이 능력치 이하라면 성공 / 매우 낮은 값은 대성공, 매우 높은 값은 대실패</div>
+ </div>
+ <div class="grid2">
+  <div class="card"><div class="card-head">생존자 A 능력치 <small>기본값 · 수정 가능</small></div><div class="card-body" id="statsA"></div></div>
+  <div class="card"><div class="card-head">생존자 B 능력치 <small>기본값 · 수정 가능</small></div><div class="card-body" id="statsB"></div></div>
+ </div>
+ <div class="card"><div class="card-head">행동 선택 <small>행동하면 자동 판정</small></div><div class="card-body">
+  <div class="row" style="margin-bottom:10px"><label class="notice" for="actorSelect">행동할 생존자</label><select class="field" id="actorSelect" style="max-width:190px"><option value="a">생존자 A</option><option value="b">생존자 B</option></select></div>
+  <div class="grid2">
+   <button class="btn" data-action="관찰" data-stat="관찰">주변을 살핀다 · 관찰</button>
+   <button class="btn" data-action="은밀하게 이동" data-stat="민첩">들키지 않고 이동한다 · 민첩</button>
+   <button class="btn" data-action="문이나 장애물을 강제로 연다" data-stat="힘">문을 강제로 연다 · 힘</button>
+   <button class="btn" data-action="응급처치를 시도한다" data-stat="지능">응급처치를 한다 · 지능</button>
+   <button class="btn" data-action="주변 물자를 수색한다" data-stat="운">물자를 수색한다 · 운</button>
+   <button class="btn secondary" id="freeAction">자유 행동 직접 입력</button>
+  </div>
+  <div id="freeActionBox" style="display:none;margin-top:10px"><input class="field" id="freeActionText" placeholder="예: 깨진 유리 조각으로 문틈을 확인한다"><div class="row" style="margin-top:7px"><select class="field" id="freeStat" style="max-width:150px"><option>관찰</option><option>민첩</option><option>힘</option><option>지능</option><option>운</option></select><button class="btn" id="freeRoll">행동 판정하기</button></div></div>
+ </div></div>
+ <div class="card"><div class="card-head">AI KP 설정 <small>OpenRouter 직접 연결</small></div><div class="card-body">
+  <label class="notice" for="aiKey">OpenRouter API 키</label><input class="field" id="aiKey" type="password" autocomplete="off" placeholder="sk-or-v1-..." style="margin:6px 0 10px">
+  <label class="notice" for="aiModel">OpenRouter 모델 ID</label><input class="field" id="aiModel" value="openai/gpt-4o-mini" style="margin:6px 0 10px">
+  <div class="row"><label class="notice" style="display:flex;align-items:center;gap:7px"><input type="checkbox" id="aiAuto"> 판정 후 AI KP 자동 진행</label><button class="btn secondary" id="saveAI">설정 저장</button><button class="btn" id="aiContinue">AI KP에게 진행 요청</button></div>
+  <div class="hint" id="aiStatus">OpenRouter 키를 입력하고 설정을 저장하세요.</div>
+  <label class="notice" for="aiPrompt" style="margin-top:12px">추가 지시 / 플레이어 행동 (선택)</label><textarea class="field" id="aiPrompt" rows="2" placeholder="예: 편의점 셔터를 조금 들어 올려 안쪽을 살핀다."></textarea>
+  <div class="hint">키는 이 브라우저에만 저장됩니다. 다른 사람도 AI를 사용하려면 각자 자신의 OpenRouter 키를 입력해야 합니다.</div>
+ </div></div>
+ <div class="card"><div class="card-head">시스템 진행자 <small>자동 판정 · 사건 · KPC</small></div><div class="card-body">
+  <div class="row" style="margin-bottom:10px"><button class="btn" id="randomEvent">🎲 무작위 사건 발생</button><button class="btn secondary" id="kpcButton">KPC / NPC 등장</button><button class="btn secondary" id="rollOnly">주사위만 굴리기</button></div>
+  <div id="trpgFeed" class="feed"><div class="feed-item"><div class="feed-time">시스템</div><div><p>아직 진행된 판정이 없습니다. 첫 행동을 선택해 보세요.</p><small>진행자는 두 플레이어의 행동에 따라 상황을 제시합니다.</small></div></div></div>
+ </div></div>
+ <div class="card"><div class="card-head">현재 진행 상황 <small>자동 누적</small></div><div class="card-body"><div class="stats">
+  <div class="stat"><label>진행 차례</label><strong id="turnNo">00</strong><em>행동 횟수</em></div>
+  <div class="stat"><label>발생 사건</label><strong id="eventNo">00</strong><em>무작위 사건</em></div>
+  <div class="stat"><label>생존 상태</label><strong style="color:var(--green)">유지</strong><em>수치는 추후 확장</em></div>
+  <div class="stat"><label>진행자</label><strong style="font-size:15px">시스템</strong><em>자동 진행</em></div>
+ </div></div></div>
+ <p class="hint">※ 현재 TRPG 기능은 브라우저 안에서 작동하는 규칙 기반 시연판입니다. 실제 두 기기 동시 플레이와 AI가 상황에 맞춰 자유롭게 대화하는 KPC는 서버/AI 연결 단계에서 확장할 수 있습니다.</p>
+</div>
+
+<div class="page" id="page-journal">
+ <div class="content-head"><div><div class="eyebrow">개인 및 공동 기록</div><h2>생존 기록</h2></div><span class="tag">자유 기록</span></div>
+ <div class="card"><div class="card-head">기록 보관함 <small id="logCount">0개 기록</small></div><div class="card-body"><div id="newLogs"></div><form id="logForm" style="margin-top:10px"><input class="field" id="logTitle" placeholder="기록 제목 (선택)" style="margin-bottom:8px"><textarea class="field" id="logText" placeholder="오늘 있었던 일을 기록하세요..." rows="4" required></textarea><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn">기록 추가 +</button></div></form></div></div>
+</div>
+
+<div class="page" id="page-config">
+ <div class="content-head"><div><div class="eyebrow">기록 장치 설정</div><h2>생존자 정보</h2></div><span class="tag">프로필 편집</span></div>
+ <div class="setup-grid">
+  <div class="card"><div class="card-head">생존자 A <small>첫 번째 인물</small></div><div class="card-body">
+   <div class="uploadbox"><div class="portrait" id="previewA">A</div><div><label class="notice">초상화 이미지</label><input type="file" id="fileA" accept="image/*"><div class="hint">휴대폰 갤러리에서 선택할 수 있습니다.</div></div></div>
+   <div class="line"></div><label class="notice">이름</label><input class="field" id="inputA" placeholder="캐릭터 이름" style="margin:6px 0 10px">
+   <label class="notice">소개 / 현재 상태</label><textarea class="field" id="bioInputA" rows="3" placeholder="외형, 성격, 현재 상황 등을 자유롭게 적어 주세요."></textarea>
+  </div></div>
+  <div class="card"><div class="card-head">생존자 B <small>두 번째 인물</small></div><div class="card-body">
+   <div class="uploadbox"><div class="portrait" id="previewB">B</div><div><label class="notice">초상화 이미지</label><input type="file" id="fileB" accept="image/*"><div class="hint">휴대폰 갤러리에서 선택할 수 있습니다.</div></div></div>
+   <div class="line"></div><label class="notice">이름</label><input class="field" id="inputB" placeholder="캐릭터 이름" style="margin:6px 0 10px">
+   <label class="notice">소개 / 현재 상태</label><textarea class="field" id="bioInputB" rows="3" placeholder="외형, 성격, 현재 상황 등을 자유롭게 적어 주세요."></textarea>
+  </div></div>
+ </div>
+ <div class="card"><div class="card-body"><button class="btn" id="saveProfiles">프로필 저장</button> <span class="hint">※ 이미지와 프로필은 현재 사용 중인 브라우저에만 저장됩니다.</span></div></div>
+ <div class="card"><div class="card-head">기록 장치 안내</div><div class="card-body notice">
+  <p><strong>현재 가능한 기능</strong><br>한글 화면, 첫날 도입부, 캐릭터 이름과 초상화 등록, 소개 작성, 역극 작성자 전환, 메시지 저장, 생존 기록 및 소지품 추가.</p>
+  <p><strong>아직 연결되지 않은 기능</strong><br>두 기기 간 실시간 동기화, 공동 데이터베이스, 이미지 서버 업로드.</p>
+  <p>이 프로토타입은 GitHub Pages에서 디자인과 화면 구성을 확인하기 위한 버전입니다. 로그인 계정은 HO1과 HO2로 구분됩니다. 현재 데이터는 브라우저별로 저장되므로 서로 다른 기기 간 공유에는 공동 데이터 저장 기능이 별도로 필요합니다.</p>
+  <button class="btn danger" id="resetAll">이 기기의 기록 초기화</button>
+ </div></div>
+</div>
+</section></div>
+<footer class="foot">데드 존 · 생존자 기록망 / 살아남았다면, 기록하라.</footer>
+</main><div class="toast" id="toast"></div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const keys=['dz2_profiles','dz2_messages','dz2_logs','dz2_items'];
+let profiles=JSON.parse(localStorage.getItem(keys[0])||'null')||{a:{name:'생존자 A',bio:'',img:''},b:{name:'생존자 B',bio:'',img:''}};
+let messages=JSON.parse(localStorage.getItem(keys[1])||'[]'),logs=JSON.parse(localStorage.getItem(keys[2])||'[]'),items=JSON.parse(localStorage.getItem(keys[3])||'[]');
+let sender='a';
+let currentRole=null;
+const loginAccounts={HO11111:{password:'HO1PASS',role:'ho1',character:'a',label:'HO1'},HO22222:{password:'HO2PASS',role:'ho2',character:'b',label:'HO2'}};
+function applyLogin(account){currentRole=account.role;sender=account.character;document.body.classList.add('logged-in');$('#loginScreen').style.display='none';$('#activeAccount').textContent=account.label+' 접속 중';$('#chatRoleHint').textContent=account.label+' · '+(sender==='a'?'생존자 A':'생존자 B')+' 계정으로 작성합니다.';const actor=$('#actorSelect');if(actor){actor.value=sender;[...actor.options].forEach(o=>o.disabled=o.value!==sender);actor.disabled=true;}$('#chatInput').placeholder=(sender==='a'?'HO1':'HO2')+'로 역극을 작성하세요...';}
+$('#loginForm').addEventListener('submit',e=>{e.preventDefault();const id=$('#loginId').value.trim(),pw=$('#loginPassword').value;const account=loginAccounts[id];if(!account||account.password!==pw){$('#loginError').textContent='아이디 또는 비밀번호가 올바르지 않습니다.';return;}sessionStorage.setItem('dz_login_role',account.role);applyLogin(account);$('#loginError').textContent='';$('#loginPassword').value='';});
+function logout(){sessionStorage.removeItem('dz_login_role');document.body.classList.remove('logged-in');$('#loginScreen').style.display='grid';$('#loginId').value='';$('#loginPassword').value='';$('#loginError').textContent='';}
+$('#logoutButton').addEventListener('click',logout);
+const savedRole=sessionStorage.getItem('dz_login_role');if(savedRole==='ho1')applyLogin(loginAccounts.HO11111);else if(savedRole==='ho2')applyLogin(loginAccounts.HO22222);
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(t){let e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function go(page){$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page))}
+$$('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+function imageMarkup(p,letter){return p.img?`<img src="${p.img}" alt="생존자 초상화">`:letter}
+function renderProfiles(){
+ const map=[['a','A'],['b','B']];
+ map.forEach(([k,l])=>{
+  const p=profiles[k],name=p.name||`생존자 ${l}`;
+  ['#portrait'+l,'#preview'+l,'#smallPortrait'+l].forEach(sel=>{const e=$(sel);if(e)e.innerHTML=imageMarkup(p,l)});
+  ['#profileName'+l,'#startName'+l].forEach(sel=>{const e=$(sel);if(e)e.textContent=name});
+  const bio=$('#bio'+l);if(bio)bio.textContent=p.bio||'아직 등록된 소개가 없습니다.';
+  const inp=$('#input'+l),bi=$('#bioInput'+l);if(inp)inp.value=p.name||'';if(bi)bi.value=p.bio||'';
+ });
+}
+renderProfiles();
+function renderMessages(){
+ const box=$('#messages');box.innerHTML='';
+ if(!messages.length)box.innerHTML='<div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div>';
+ messages.forEach(m=>{let d=document.createElement('div');d.className='msg'+(m.key===sender?' mine':'');const p=profiles[m.key]||{};d.innerHTML=`<div class="who">${p.img?`<img class="mini" src="${p.img}">`:''}${esc(p.name||m.name)}</div><p>${esc(m.text)}</p><time>${esc(m.time)}</time>`;box.appendChild(d)});
+ $('#msgCount').textContent=messages.length+'개 메시지';box.scrollTop=box.scrollHeight;save(keys[1],messages);
+}
+renderMessages();
+$('#chatForm').addEventListener('submit',e=>{e.preventDefault();let text=$('#chatInput').value.trim();if(!text)return;let p=profiles[sender];messages.push({key:sender,name:p.name,text,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}),mine:true});$('#chatInput').value='';renderMessages()});
+// 로그인 계정에 따라 작성 캐릭터가 고정됩니다.
+$('#clearChat').addEventListener('click',()=>{if(confirm('역극 기록을 모두 비울까요?')){messages=[];renderMessages();toast('역극 기록을 비웠습니다.')}});
+['a','b'].forEach(k=>$('#file'+k.toUpperCase()).addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){toast('이미지 파일을 선택해 주세요.');return}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas'),max=700,scale=Math.min(1,max/Math.max(img.width,img.height));canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);profiles[k].img=canvas.toDataURL('image/jpeg',.82);const l=k.toUpperCase();$('#preview'+l).innerHTML=`<img src="${profiles[k].img}" alt="초상화 미리보기">`;toast('초상화를 불러왔습니다. 프로필 저장을 눌러 주세요.')};img.src=reader.result};reader.readAsDataURL(f)}));
+$('#saveProfiles').addEventListener('click',()=>{profiles.a.name=$('#inputA').value.trim()||'생존자 A';profiles.b.name=$('#inputB').value.trim()||'생존자 B';profiles.a.bio=$('#bioInputA').value.trim();profiles.b.bio=$('#bioInputB').value.trim();save(keys[0],profiles);renderProfiles();renderMessages();toast('두 생존자의 정보를 저장했습니다.')});
+function renderLogs(){const box=$('#newLogs');box.innerHTML='';logs.forEach(l=>{let d=document.createElement('div');d.className='log-entry';d.innerHTML=`<time>${esc(l.date)} · ${esc(l.title||'생존 기록')}</time><p>${esc(l.text)}</p>`;box.prepend(d)});$('#logCount').textContent=logs.length+'개 기록';save(keys[2],logs)}
+renderLogs();
+$('#logForm').addEventListener('submit',e=>{e.preventDefault();logs.push({date:'첫째 날 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),title:$('#logTitle').value,text:$('#logText').value});$('#logTitle').value='';$('#logText').value='';renderLogs();toast('생존 기록을 추가했습니다.')});
+function renderItems(){const box=$('#itemList');box.innerHTML='';if(!items.length){box.innerHTML='<p class="notice">아직 등록된 소지품이 없습니다.</p>';return}items.forEach((it,i)=>{let d=document.createElement('div');d.className='item';d.innerHTML=`<div class="ico">▣</div><b>${esc(it.name)}</b><small>${esc(it.qty||'수량 미정')}</small><button class="btn secondary" style="margin-top:8px;padding:5px 7px" data-remove="${i}">삭제</button>`;box.appendChild(d)});box.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{items.splice(+b.dataset.remove,1);save(keys[3],items);renderItems()}))}
+renderItems();
+$('#itemForm').addEventListener('submit',e=>{e.preventDefault();items.push({name:$('#itemName').value.trim(),qty:$('#itemQty').value.trim()});save(keys[3],items);$('#itemName').value='';$('#itemQty').value='';renderItems();toast('소지품을 추가했습니다.')});
+$$('.zone').forEach(z=>z.addEventListener('click',()=>{logs.push({date:'첫째 날 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),title:'지역 확인 · '+z.dataset.zone,text:'탐색 후보 지역으로 기록했다. 실제 상황은 역극으로 정한다.'});renderLogs();toast(z.dataset.zone+' 지역을 기록했습니다.')}));
+$('#resetAll').addEventListener('click',()=>{if(confirm('이 기기에 저장된 프로필, 초상화, 역극, 기록, 소지품을 모두 지울까요?')){keys.forEach(k=>localStorage.removeItem(k));location.reload()}});
+
+// 초보자용 TRPG 규칙: 백분율 주사위, 목표 능력치 이하 성공
+const trpgKey='dz2_trpg';
+let trpgState=JSON.parse(localStorage.getItem(trpgKey)||'null')||{turn:0,events:0,feed:[],stats:{a:{'힘':55,'민첩':60,'관찰':60,'지능':55,'운':50},b:{'힘':55,'민첩':60,'관찰':60,'지능':55,'운':50}}};
+const eventPool=[
+ ['멀리서 유리 깨지는 소리가 들린다. 누군가 아직 건물 안에 있는 걸까?','소리','주변을 확인하거나 몸을 숨길 수 있다.'],
+ ['골목 끝에 비틀거리는 사람이 서 있다. 아직 감염자인지는 확실하지 않다.','조우','다가갈지, 피할지, 말을 걸지 결정할 수 있다.'],
+ ['갑작스러운 비가 쏟아지기 시작한다. 시야가 흐려지고 소리가 묻힌다.','환경','이동은 쉬워질 수 있지만 주변을 파악하기 어려워진다.'],
+ ['휴대전화가 짧게 진동한다. 발신자를 알 수 없는 재난 문자가 도착했다.','통신','문자에는 인근 대피소의 위치가 적혀 있다. 사실인지는 알 수 없다.'],
+ ['길가에 버려진 가방이 놓여 있다. 안에서 무언가 부딪히는 소리가 난다.','발견','물자일 수도, 위험한 무언가일 수도 있다.'],
+ ['멀리서 자동차 경적이 반복해서 울린다. 소리가 점점 가까워진다.','위험','소리를 따라오는 존재가 있을 수 있다.'],
+ ['건물의 비상 전원이 켜지며 복도에 불이 들어온다. 동시에 경보음이 울린다.','환경','밝아진 대신 위치가 노출될 수 있다.'],
+ ['누군가 벽에 급하게 휘갈긴 글씨를 발견한다. “옥상으로 오지 마.”','단서','누가, 왜 남긴 경고일까?'],
+ ['근처에서 구조 요청이 들린다. 목소리는 한 명이 아닌 듯하다.','조우','도움을 줄지, 위험을 피할지 선택할 수 있다.'],
+ ['잠시 정전이 발생한다. 어둠 속에서 발소리가 가까워진다.','위험','움직임을 멈추거나 즉시 자리를 옮길 수 있다.'],
+ ['운 좋게도 쓸 만한 물자를 발견한다. 포장도 뜯기지 않은 생수와 간식이다.','보급','획득 여부와 수량은 역극으로 확정한다.'],
+ ['낯선 생존자가 모습을 드러낸다. 그는 두 사람을 경계하고 있다.','인물','대화하거나 거리를 유지할 수 있다.']
+];
+const kpcPool=[
+ {name:'정체불명의 생존자',line:'“잠깐. 당신들, 물린 곳은 없어요? 가까이 오기 전에 대답해요.”',note:'경계심이 강한 생존자. 적인지 아군인지는 아직 알 수 없다.'},
+ {name:'임시 대피소 안내 방송',line:'“현재 생존자 확인 절차를 진행 중입니다. 혼자 이동하지 마십시오.”',note:'방송의 발신지는 불명확하다. 실제 구조대의 안내인지 확인이 필요하다.'},
+ {name:'부상당한 시민',line:'“제발… 잠깐만 도와주세요. 저 혼자서는 못 움직이겠어요.”',note:'다리를 다친 시민. 주변 상황을 먼저 살펴야 한다.'},
+ {name:'군복 차림의 인물',line:'“거기 멈춰! 신원부터 확인하겠다. 무기는 바닥에 내려놔!”',note:'무장한 인물. 소속과 의도는 불명확하다.'},
+ {name:'어린아이의 목소리',line:'“저기요… 엄마가 안 와요. 혹시 우리 엄마 봤어요?”',note:'목소리는 가까운 건물 안쪽에서 들린다.'}
+];
+function persistTRPG(){localStorage.setItem(trpgKey,JSON.stringify(trpgState))}
+function statMarkup(k){let box=$('#stats'+k.toUpperCase());if(!box)return;box.innerHTML='';Object.entries(trpgState.stats[k]).forEach(([name,val])=>{let row=document.createElement('div');row.style.marginBottom='9px';row.innerHTML=`<div class="split"><span class="notice">${name}</span><input aria-label="${name} 능력치" type="number" min="1" max="99" value="${val}" data-stat-owner="${k}" data-stat-name="${name}" class="field" style="width:75px;padding:5px;text-align:center"></div><div class="bar"><i style="width:${val}%"></i></div>`;box.appendChild(row)});box.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',()=>{let v=Math.max(1,Math.min(99,Number(inp.value)||1));trpgState.stats[k][inp.dataset.statName]=v;inp.value=v;persistTRPG();statMarkup(k)}))}
+statMarkup('a');statMarkup('b');
+function pushFeed(title,body,sub='시스템 진행'){trpgState.feed.unshift({title,body,sub,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})});trpgState.feed=trpgState.feed.slice(0,30);renderTRPGFeed();persistTRPG()}
+function renderTRPGFeed(){let box=$('#trpgFeed');if(!box)return;box.innerHTML='';if(!trpgState.feed.length){box.innerHTML='<div class="notice">아직 진행된 판정이 없습니다.</div>'}trpgState.feed.forEach(f=>{let d=document.createElement('div');d.className='feed-item';d.innerHTML=`<div class="feed-time">${esc(f.time)}</div><div><p><b>${esc(f.title)}</b><br>${esc(f.body)}</p><small>${esc(f.sub)}</small></div>`;box.appendChild(d)});$('#turnNo').textContent=String(trpgState.turn).padStart(2,'0');$('#eventNo').textContent=String(trpgState.events).padStart(2,'0')}
+renderTRPGFeed();
+function rollD100(){return Math.floor(Math.random()*100)+1}
+function doCheck(action,skill,actor){
+ let target=trpgState.stats[actor][skill]||50,roll=rollD100(),result,detail;
+ if(roll<=5){result='극단적 성공';detail='놀라울 만큼 깔끔하게 해냈습니다.'}
+ else if(roll>=96){result='대실패';detail='예상하지 못한 문제가 발생했습니다.'}
+ else if(roll<=Math.floor(target/2)){result='어려운 성공';detail='불리한 상황에서도 훌륭하게 해냈습니다.'}
+ else if(roll<=target){result='성공';detail='행동을 무사히 해냈습니다.'}
+ else{result='실패';detail='원하는 결과를 얻지 못했습니다. 상황이 더 나빠질 수도 있습니다.'}
+ trpgState.turn++;
+ let name=profiles[actor].name|| (actor==='a'?'생존자 A':'생존자 B');
+ pushFeed(`${name} · ${action}`,`판정: ${skill} ${target} / 주사위: ${String(roll).padStart(2,'0')} / 결과: ${result}. ${detail}`,`자동 판정 · ${trpgState.turn}번째 행동`);
+ if(Math.random()<.28)randomEvent();
+ if($('#aiAuto')?.checked)callAI(`${name}의 행동: ${action}. 판정 결과: ${result} (${skill} ${target}, 주사위 ${roll}). 이 결과를 반영해 장면을 진행해 줘.`);
+}
+$$('#page-trpg [data-action]').forEach(btn=>btn.addEventListener('click',()=>doCheck(btn.dataset.action,btn.dataset.stat,$('#actorSelect').value)));
+$('#freeAction').addEventListener('click',()=>{$('#freeActionBox').style.display=$('#freeActionBox').style.display==='none'?'block':'none'});
+$('#freeRoll').addEventListener('click',()=>{let action=$('#freeActionText').value.trim();if(!action){toast('행동을 먼저 입력해 주세요.');return}doCheck(action,$('#freeStat').value,$('#actorSelect').value);$('#freeActionText').value=''});
+function randomEvent(){let e=eventPool[Math.floor(Math.random()*eventPool.length)];trpgState.events++;pushFeed(`무작위 사건 · ${e[1]}`,`${e[0]} ${e[2]}`,'주사위/사건표 자동 추첨')}
+$('#randomEvent').addEventListener('click',randomEvent);
+$('#kpcButton').addEventListener('click',()=>{let k=kpcPool[Math.floor(Math.random()*kpcPool.length)];pushFeed(`시스템 등장인물 · ${k.name}`,`${k.line} ${k.note}`,'KPC / NPC 자동 등장')});
+$('#rollOnly').addEventListener('click',()=>{let n=rollD100();pushFeed('주사위 굴림',`백분율 주사위 결과는 ${n}입니다. 행동 판정에 사용할 수 있습니다.`,'1~100 무작위 굴림')});
+
+// GitHub Pages 단독 실행: OpenRouter API를 브라우저에서 직접 호출합니다.
+const aiConfigKey='dz2_ai_config', aiHistoryKey='dz2_ai_history';
+let aiConfig=JSON.parse(localStorage.getItem(aiConfigKey)||'null')||{key:'',model:'openai/gpt-4o-mini',auto:false};
+let aiHistory=JSON.parse(localStorage.getItem(aiHistoryKey)||'[]');
+$('#aiKey').value=aiConfig.key||'';$('#aiModel').value=aiConfig.model||'openai/gpt-4o-mini';$('#aiAuto').checked=!!aiConfig.auto;
+$('#saveAI').addEventListener('click',()=>{aiConfig={key:$('#aiKey').value.trim(),model:$('#aiModel').value.trim()||'openai/gpt-4o-mini',auto:$('#aiAuto').checked};localStorage.setItem(aiConfigKey,JSON.stringify(aiConfig));$('#aiStatus').textContent=aiConfig.key?'설정 저장 완료. AI KP를 사용할 수 있습니다.':'OpenRouter API 키를 입력해 주세요.';toast('AI 설정을 저장했습니다.')});
+function recentContext(){return trpgState.feed.slice(0,12).reverse().map(x=>`[${x.time}] ${x.title}: ${x.body}`).join('\n')||'아직 진행 기록이 없습니다.'}
+async function callAI(extra=''){
+ aiConfig={key:$('#aiKey').value.trim(),model:$('#aiModel').value.trim()||'openai/gpt-4o-mini',auto:$('#aiAuto').checked};
+ if(!aiConfig.key){toast('OpenRouter API 키를 입력해 주세요.');$('#aiStatus').textContent='API 키가 비어 있습니다.';return}
+ localStorage.setItem(aiConfigKey,JSON.stringify(aiConfig));
+ const button=$('#aiContinue');button.disabled=true;button.textContent='AI KP 진행 중…';$('#aiStatus').textContent='AI KP가 현재 상황을 정리하고 있습니다…';
+ const stats=`A: ${JSON.stringify(trpgState.stats.a)} / B: ${JSON.stringify(trpgState.stats.b)}`;
+ const system=`너는 한국어 좀비 아포칼립스 2인용 TRPG의 KP(게임 진행자)다. 장르는 현실적이고 긴장감 있는 생존 호러다. 플레이어 캐릭터의 행동과 주사위 결과를 존중하고, 플레이어 캐릭터의 대사·선택·행동을 대신 결정하지 마라. 성공/실패 판정은 이미 코드가 처리했으므로 뒤집지 마라. 상황 묘사와 NPC 대사, 감각적 단서, 선택 가능한 행동을 2~5문단으로 제시하라. 임의로 캐릭터를 죽이거나 감염시키지 말고, 큰 변화는 위험을 예고하거나 판정으로 처리하도록 유도하라. 기존 설정과 모순되지 않게 진행하라. 규칙 설명보다 장면에 집중하라.`;
+ const user=`현재 세계: 2026년 11월 25일 좀비 사태 발생 첫날. 두 생존자가 함께 생존 중이다.\n능력치: ${stats}\n최근 진행 기록:\n${recentContext()}\n\n플레이어의 추가 행동/지시: ${extra||'직전 기록을 바탕으로 다음 장면을 진행해 줘.'}\n\nKP로서 다음 장면을 자연스럽게 진행해 줘.`;
+ try{
+  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+aiConfig.key,'Content-Type':'application/json','HTTP-Referer':location.href,'X-Title':'DEAD ZONE TRPG'},body:JSON.stringify({model:aiConfig.model,messages:[{role:'system',content:system},...aiHistory.slice(-10),{role:'user',content:user}],temperature:0.85,max_tokens:1000})});
+  const data=await res.json();if(!res.ok)throw new Error(data.error?.message||`OpenRouter 오류 ${res.status}`);
+  const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error('AI 응답 내용이 비어 있습니다. 모델 ID를 확인해 주세요.');
+  aiHistory.push({role:'user',content:user},{role:'assistant',content:answer});aiHistory=aiHistory.slice(-20);localStorage.setItem(aiHistoryKey,JSON.stringify(aiHistory));
+  pushFeed('AI KP · 장면 진행',answer,'OpenRouter · '+aiConfig.model);$('#aiStatus').textContent='AI KP 연결 성공 · 방금 장면을 기록했습니다.';$('#aiPrompt').value='';
+ }catch(err){$('#aiStatus').textContent='연결 실패: '+err.message;toast('AI 연결에 실패했습니다. API 키와 모델을 확인해 주세요.')}finally{button.disabled=false;button.textContent='AI KP에게 진행 요청'}
+}
+$('#aiContinue').addEventListener('click',()=>callAI($('#aiPrompt').value.trim()));
+function tick(){$('#clock').textContent=new Date().toLocaleTimeString('ko-KR',{hour12:false})}tick();setInterval(tick,1000);
+</script>
+</body></html>
