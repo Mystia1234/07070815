@@ -122,64 +122,21 @@ a{color:#111!important}
 }
 
 
-/* DEAD ZONE : Black Survival-like compact play HUD */
-#page-activities{display:none!important}
-#page-activities.active{display:block!important}
-#page-activities>.content-head:first-child{display:none!important}
-#page-activities>.activity-tabs{display:none!important}
+/* DEAD ZONE : Black Survival compact game HUD */
+#page-activities{display:none!important}#page-activities.active{display:block!important}
+#page-activities>.content-head:first-child,#page-activities>.activity-tabs{display:none!important}
 #page-activities>.activity-panel{display:none!important}
-#dzGame{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:10px;max-width:1050px;margin:0 auto}
-.dz-main{min-width:0;display:flex;flex-direction:column;gap:9px}
-.dz-top{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:#101812;border:1px solid #405044;font:11px var(--mono);color:#c6d3c6}
-.dz-top strong{color:#e1ebdc;font-size:13px}
-.dz-scene{min-height:270px;position:relative;overflow:hidden;border:1px solid #536454;background:linear-gradient(180deg,#27382c 0%,#17231b 48%,#0e1510 100%);padding:16px;display:flex;flex-direction:column;justify-content:space-between}
-.dz-scene:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 49.7%,#d8e6d008 50%,transparent 50.3%),linear-gradient(0deg,transparent 49.7%,#d8e6d008 50%,transparent 50.3%);background-size:38px 38px;opacity:.5;pointer-events:none}
-.dz-scene>*{position:relative}
-.dz-scene-kicker{font:10px var(--mono);letter-spacing:1.5px;color:#c0d0b8}
-.dz-scene h2{font-size:25px;margin:7px 0;color:#f0f4ed;text-shadow:0 2px 8px #000}
-.dz-scene p{max-width:540px;color:#d1dbd0;line-height:1.7;margin:0}
-.dz-scene-foot{display:flex;justify-content:space-between;align-items:end;margin-top:34px;font:10px var(--mono);color:#b9c9b8}
-.dz-feed{border:1px solid #35443a;background:#101712;padding:9px 11px;max-height:185px;overflow:auto}
-.dz-feed .feed-item{padding:7px 0;border-bottom:1px solid #28352c}
-.dz-side{display:flex;flex-direction:column;gap:9px}
-.dz-survivors{border:1px solid #35443a;background:#111914;padding:10px}
-.dz-survivor{padding:7px 0;border-bottom:1px solid #2a382e}
-.dz-survivor:last-child{border:0}
-.dz-survivor b{display:block;font-size:12px;margin-bottom:5px}
-.dz-meter{height:5px;background:#29362d;margin:4px 0 7px}
-.dz-meter i{display:block;height:100%;background:#9eb98d}
-.dz-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.dz-actions button{min-height:48px;border:1px solid #526653;background:#1a281e;color:#dce8d9;font-size:11px;font-weight:700}
-.dz-actions button:active{background:#354c38}
-.dz-bottom{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.dz-bottom button{min-height:44px;background:#111914;border:1px solid #3a4b3d;color:#cbd8ca;font-size:10px}
-.dz-drawer{display:none;grid-column:1/-1;border:1px solid #60715f;background:#111914;padding:10px;max-height:55vh;overflow:auto}
-.dz-drawer.open{display:block}
-.dz-drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;font:11px var(--mono);color:#c6d6c3}
-.dz-drawer-close{background:#26352a;color:#fff;border:1px solid #526653;padding:6px 10px}
-#dzGame .activity-panel{display:block!important}
-#dzGame .activity-panel>.content-head{display:none!important}
-#dzGame .activity-panel .card{margin:0 0 8px}
-#dzGame .activity-panel .map{grid-template-columns:repeat(2,minmax(0,1fr))}
-#dzGame .activity-panel#activity-trpg .intro{margin:0 0 8px}
-#dzGame .activity-panel#activity-trpg .grid2{gap:7px}
-#dzGame .activity-panel#activity-rp .chatbox{min-height:220px}
-#dzGame .activity-panel#activity-rp .messages{max-height:220px;min-height:150px;overflow:auto}
-#dzGame .activity-panel#activity-rp>.row,#dzGame .activity-panel#activity-rp>p.hint{display:none}
-#dzGame .activity-panel#activity-save{display:none!important}
-#dzGame .dz-drawer .activity-panel{display:none!important}
-#dzGame .dz-drawer .activity-panel.active-drawer{display:block!important}
-@media(max-width:760px){
- #dzGame{grid-template-columns:1fr;gap:7px}
- .dz-top{grid-column:1;position:sticky;top:58px;z-index:7}
- .dz-side{display:grid;grid-template-columns:1fr}
- .dz-survivors{display:grid;grid-template-columns:1fr 1fr;gap:8px}
- .dz-scene{min-height:220px;padding:13px}
- .dz-scene h2{font-size:21px}
- .dz-bottom{grid-column:1;position:sticky;bottom:72px;z-index:8;background:#0c110e;padding:5px 0}
- .dz-drawer{grid-column:1;max-height:52vh}
- .dz-actions button{min-height:43px}
-}
+#dzGame{display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:9px;max-width:1050px;margin:auto}
+.dz-top{grid-column:1/-1;display:flex;justify-content:space-between;padding:9px 12px;background:#101812;border:1px solid #405044;font:11px var(--mono);color:#c6d3c6}.dz-top strong{color:#e1ebdc;font-size:13px}
+.dz-main{min-width:0;display:flex;flex-direction:column;gap:8px}
+.dz-scene{min-height:270px;border:1px solid #536454;background:linear-gradient(180deg,#2a3a2e,#17231b 55%,#0e1510);padding:16px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.dz-scene:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.2;background:linear-gradient(90deg,transparent 49.8%,#d8e6d0 50%,transparent 50.2%),linear-gradient(0deg,transparent 49.8%,#d8e6d0 50%,transparent 50.2%);background-size:42px 42px}
+.dz-scene>*{position:relative;z-index:1}.dz-kicker{font:10px var(--mono);letter-spacing:1.5px;color:#c0d0b8}.dz-scene h2{font-size:24px;margin:8px 0;color:#f0f4ed}.dz-scene p{max-width:550px;color:#d1dbd0;line-height:1.7;margin:0}.dz-scene-foot{display:flex;justify-content:space-between;margin-top:30px;font:10px var(--mono);color:#b9c9b8}
+.dz-feed{border:1px solid #35443a;background:#101712;padding:9px 11px;max-height:190px;overflow:auto}.dz-side{display:flex;flex-direction:column;gap:8px}.dz-survivors{border:1px solid #35443a;background:#111914;padding:9px}.dz-survivor{padding:7px 0;border-bottom:1px solid #2a382e;font-size:11px}.dz-survivor:last-child{border:0}.dz-survivor b{display:block;margin-bottom:6px;font-size:12px}.dz-meter{height:5px;background:#29362d;margin:4px 0 6px}.dz-meter i{display:block;height:100%;background:#9eb98d}
+.dz-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.dz-actions button{min-height:48px;border:1px solid #526653;background:#1a281e;color:#dce8d9;font-size:11px;font-weight:700}.dz-bottom{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.dz-bottom button{min-height:43px;background:#111914;border:1px solid #3a4b3d;color:#cbd8ca;font-size:10px}
+.dz-drawer{display:none;grid-column:1/-1;border:1px solid #60715f;background:#111914;padding:10px;max-height:54vh;overflow:auto}.dz-drawer.open{display:block}.dz-drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;font:11px var(--mono);color:#c6d6c3}.dz-drawer-close{background:#26352a;color:#fff;border:1px solid #526653;padding:6px 10px}
+#dzDrawerContent>.activity-panel{display:block!important}#dzDrawerContent .activity-panel>.content-head{display:none!important}#dzDrawerContent .card{margin:0 0 8px}#dzDrawerContent .map{grid-template-columns:repeat(2,minmax(0,1fr))}#dzDrawerContent #activity-rp .chatbox{min-height:210px}#dzDrawerContent #activity-rp .messages{max-height:220px;min-height:140px;overflow:auto}
+@media(max-width:760px){#dzGame{grid-template-columns:1fr;gap:7px}.dz-top{grid-column:1;position:sticky;top:58px;z-index:7}.dz-scene{min-height:215px;padding:13px}.dz-scene h2{font-size:21px}.dz-survivors{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dz-bottom{grid-column:1;position:sticky;bottom:72px;z-index:8;background:#0c110e;padding:4px 0}.dz-drawer{grid-column:1;max-height:50vh}}
 </style>
 </head>
 <body>
@@ -299,23 +256,113 @@ a{color:#111!important}
  <p class="notice">체력, 허기, 감염도 등의 수치는 현재 고정된 설정이 아닙니다. 실제 진행에 맞춰 추후 자유롭게 추가할 수 있습니다.</p>
 </div>
 
-
 <div class="page" id="page-activities">
- <div id="dzGame">
-  <div class="dz-top"><span><strong>DEAD ZONE</strong>　/　DAY 01</span><span id="dzClock">08:00　·　안전지대</span></div>
-  <div class="dz-main">
-   <section class="dz-scene"><div><div class="dz-scene-kicker">CURRENT FIELD / 01</div><h2 id="dzPlaceTitle">안전지대</h2><p id="dzSceneText">낡은 건물 안은 고요하다. 먼지 쌓인 창문 너머로 텅 빈 도로가 보인다. 멀리서 무언가 금속을 긁는 소리가 들려온다.</p></div><div class="dz-scene-foot"><span>위험도　<span style="color:#df766b">LOW → UNKNOWN</span></span><span>탐색 가능 지역　10</span></div></section>
-   <section class="dz-feed"><div class="dz-scene-kicker">FIELD LOG / 진행 기록</div><div id="dzFeedMount"></div></section>
-  </div>
-  <aside class="dz-side">
-   <div class="dz-survivors"><div class="dz-survivor"><b id="dzNameA">HO1</b><span>HP</span><div class="dz-meter"><i style="width:100%"></i></div><small>생존자 상태</small></div><div class="dz-survivor"><b id="dzNameB">HO2</b><span>HP</span><div class="dz-meter"><i style="width:100%"></i></div><small>생존자 상태</small></div></div>
-   <div class="dz-actions"><button type="button" data-dz-action="관찰">🔎<br>탐색</button><button type="button" data-dz-action="물자 수색">▣<br>채집</button><button type="button" data-dz-action="은밀 이동">⇢<br>이동</button><button type="button" data-dz-action="주변 관찰">⚔<br>대응</button></div>
-  </aside>
-  <nav class="dz-bottom"><button data-dz-open="map">지역</button><button data-dz-open="actions">행동</button><button data-dz-open="rp">통신</button><button data-dz-open="trpg">상태 / 판정</button><button data-dz-open="items">가방</button></nav>
-  <section class="dz-drawer" id="dzDrawer"><div class="dz-drawer-head"><span id="dzDrawerTitle">FIELD MENU</span><button class="dz-drawer-close" type="button">닫기 ×</button></div><div id="dzDrawerContent"></div></section>
+<div id="dzGame"><div class="dz-top"><span><strong>DEAD ZONE</strong>　/　DAY 01</span><span id="dzClock">08:00　·　안전지대</span></div>
+<div class="dz-main"><section class="dz-scene"><div><div class="dz-kicker">CURRENT FIELD / 01</div><h2 id="dzPlaceTitle">안전지대</h2><p id="dzSceneText">낡은 건물 안은 고요하다. 먼지 쌓인 창문 너머로 텅 빈 도로가 보인다. 멀리서 금속을 긁는 소리가 들려온다.</p></div><div class="dz-scene-foot"><span>위험도　<span style="color:#df766b">UNKNOWN</span></span><span>탐색 가능 지역　10</span></div></section><section class="dz-feed"><div class="dz-kicker">FIELD LOG / 진행 기록</div><div id="dzFeedMount"></div></section></div>
+<aside class="dz-side"><div class="dz-survivors"><div class="dz-survivor"><b id="dzNameA">HO1</b>HP<div class="dz-meter"><i style="width:100%"></i></div><small>생존자 01</small></div><div class="dz-survivor"><b id="dzNameB">HO2</b>HP<div class="dz-meter"><i style="width:100%"></i></div><small>생존자 02</small></div></div><div class="dz-actions"><button data-dz-action="주변 관찰">🔎<br>탐색</button><button data-dz-action="물자 수색">▣<br>채집</button><button data-dz-action="은밀 이동">⇢<br>이동</button><button data-dz-action="문 열기">⚔<br>행동</button></div></aside>
+<nav class="dz-bottom"><button data-dz-open="map">지역</button><button data-dz-open="actions">행동</button><button data-dz-open="rp">통신</button><button data-dz-open="trpg">상태 / 판정</button><button data-dz-open="items">가방</button></nav>
+<section class="dz-drawer" id="dzDrawer"><div class="dz-drawer-head"><span id="dzDrawerTitle">FIELD MENU</span><button class="dz-drawer-close" type="button">닫기 ×</button></div><div id="dzDrawerContent"></div></section></div><div class="content-head"><div><div class="eyebrow">SURVIVAL CONSOLE</div><h2>생존 활동</h2></div><span class="tag">SESSION 01 · 통합 플레이</span></div><div class="activity-tabs" role="tablist" aria-label="생존 활동 기능"><button type="button" class="activity-tab active" data-activity="map">⌖ 지역 탐색</button><button type="button" class="activity-tab" data-activity="actions">⚑ 행동 / 이동</button><button type="button" class="activity-tab" data-activity="rp">✉ 역극 통신</button><button type="button" class="activity-tab" data-activity="trpg">🎲 주사위 / TRPG</button><button type="button" class="activity-tab" data-activity="items">▤ 소지품</button><button type="button" class="activity-tab" data-activity="save">▣ 저장 / 불러오기</button></div><div class="activity-panel" id="activity-map">
+ <div class="content-head"><div><div class="eyebrow">주변 탐색</div><h2>주변 지역</h2></div><span class="tag">정보 미확인</span></div>
+ <div class="card"><div class="card-head">탐색 후보 지역 <small>장소를 눌러 기록</small></div><div class="card-body"><div class="map">
+ <button class="zone" data-zone="주거 지역"><b>01 / 주거 지역</b><span>불이 켜진 창문이 드문드문 보인다.<br>내부 상황은 알 수 없다.</span><i class="danger">미확인</i></button>
+ <button class="zone" data-zone="편의점"><b>02 / 편의점</b><span>출입문이 열려 있는 듯하다.<br>물자가 남아 있을까?</span><i class="danger">미확인</i></button>
+ <button class="zone" data-zone="병원"><b>03 / 병원</b><span>구급차 사이렌이 멈췄다.<br>가까이 가는 것은 위험할 수 있다.</span><i class="danger">주의</i></button>
+ <button class="zone" data-zone="지하철역"><b>04 / 지하철역</b><span>역 안쪽에서 희미한 소음이 들린다.<br>대피자가 있을지도 모른다.</span><i class="danger">미확인</i></button>
+ <button class="zone" data-zone="경찰서"><b>05 / 경찰서</b><span>비상 방송이 반복되고 있다.<br>상황은 알 수 없다.</span><i class="danger">주의</i></button>
+ <button class="zone" data-zone="주유소"><b>06 / 주유소</b><span>주유기 주변에 버려진 차량이 있다.<br>연료가 남아 있을까?</span><i class="danger">주의</i></button>
+ <button class="zone" data-zone="옥상"><b>07 / 건물 옥상</b><span>주변 도로를 내려다볼 수 있다.<br>누군가 구조 신호를 보내는가?</span><i class="danger">노출 위험</i></button>
+ <button class="zone" data-zone="물류 창고"><b>08 / 물류 창고</b><span>셔터가 내려와 있다.<br>안쪽에 물자가 있을 수 있다.</span><i class="danger">미확인</i></button>
+ <button class="zone" data-zone="학교"><b>09 / 학교</b><span>운동장에 버려진 가방이 보인다.<br>건물 안은 조용하다.</span><i class="danger">주의</i></button>
+ <button class="zone" data-zone="기타 장소"><b>10 / 기타 장소</b><span>두 사람이 직접 정한 장소를<br>기록할 수 있다.</span><i class="danger">자유 입력</i></button>
+ </div></div></div><p class="notice">지도는 분위기 확인용 예시입니다. 실제 이동 경로와 장소는 역극에서 자유롭게 정하세요.</p>
+</div>
+<div class="activity-panel" id="activity-actions">
+ <div class="content-head"><div><div class="eyebrow">현장 행동 단말기</div><h2>행동 / 이동</h2></div><span class="tag">행동을 선택하세요</span></div>
+ <div class="card"><div class="card-head">현재 위치 <small>탐색 지역</small></div><div class="card-body"><p class="notice">현재 위치: <strong id="currentLocation">미확인 지역</strong></p><p class="hint">지역을 이동하려면 주변 지역 메뉴에서 목적지를 선택하세요. 이동 후 아래 행동을 선택할 수 있습니다.</p></div></div>
+ <div class="card"><div class="card-head">행동 선택 <small>선택 즉시 판정하고 결과를 아래에 표시</small></div><div class="card-body"><div class="row action-actor"><label for="actionActor">행동할 생존자</label><select class="field" id="actionActor"><option value="a">생존자 1</option><option value="b">생존자 2</option></select></div><div class="action-grid">
+  <button class="btn action-shortcut" data-action="주변을 자세히 관찰한다" data-stat="관찰">주변 관찰</button>
+  <button class="btn action-shortcut" data-action="소리를 죽이고 은밀하게 이동한다" data-stat="민첩">은밀 이동</button>
+  <button class="btn action-shortcut" data-action="주변의 물자를 수색한다" data-stat="운">물자 수색</button>
+  <button class="btn action-shortcut" data-action="문이나 장애물을 힘으로 연다" data-stat="힘">문 열기</button>
+  <button class="btn action-shortcut" data-action="부상자를 응급처치한다" data-stat="지능">응급처치</button>
+  <button class="btn action-shortcut" data-action="주변의 소리를 듣고 위험을 파악한다" data-stat="관찰">소리 듣기</button>
+  <button class="btn secondary" onclick="go('activities','rp')">상대에게 통신 보내기</button>
+  <button class="btn secondary" onclick="go('activities','map')">다른 지역으로 이동</button>
+  </div><div id="actionResult" class="action-result" aria-live="polite"><b>행동 결과</b><p>행동을 선택하면 판정 결과가 여기에 표시됩니다.</p></div></div></div>
+ <div class="card"><div class="card-head">자유 행동 <small>원하는 행동 직접 입력</small></div><div class="card-body"><textarea class="field" id="actionFreeText" rows="3" placeholder="예: 편의점 셔터를 조금 들어 올리고 안쪽을 살핀다."></textarea><div class="row" style="margin-top:8px"><select class="field" id="actionFreeStat" style="max-width:150px"><option>관찰</option><option>민첩</option><option>힘</option><option>지능</option><option>운</option></select><button class="btn" id="actionFreeGo">행동 실행 / 판정</button></div></div></div>
+ <p class="hint">행동을 실행하면 D100 판정이 즉시 진행되고, 결과는 이 화면과 TRPG 진행 기록에 함께 남습니다. 이동은 주변 지역에서 선택하세요.</p>
+</div>
+<div class="activity-panel" id="activity-rp">
+ <div class="content-head"><div><div class="eyebrow">두 사람의 비공개 기록</div><h2>역극 통신</h2></div><span class="tag">이 기기에 저장</span></div>
+ <div class="card"><div class="card-head"><span>대화 기록</span><small id="msgCount">0개 메시지</small></div><div class="chatbox"><div class="messages" id="messages"><div class="notice" style="margin:auto;text-align:center">아직 작성된 역극이 없습니다.<br>첫 장면을 시작해 보세요.</div></div><form class="composer" id="chatForm"><textarea id="chatInput" placeholder="대사와 지문을 자유롭게 입력하세요..." required></textarea><button class="btn" type="submit">보내기 ↗</button></form></div></div>
+ <div class="row"><span class="hint" id="chatRoleHint">로그인한 계정의 캐릭터로 작성합니다.</span><button class="btn secondary" id="clearChat">대화 기록 비우기</button></div>
+ <p class="hint">로그인한 계정(HO1 또는 HO2)에 지정된 캐릭터로만 작성할 수 있습니다. 서로 다른 휴대폰에서 실시간으로 주고받는 기능은 데이터베이스 연결 후 구현됩니다.</p>
+</div>
+<div class="activity-panel" id="activity-trpg">
+ <div class="content-head"><div><div class="eyebrow">자동 진행 · 초보자 모드</div><h2>TRPG 생존 진행</h2></div><span class="tag">시스템 진행자 작동 중</span></div>
+ <div class="intro">
+  <h3>진행 방법은 간단합니다</h3>
+  <p>행동을 선택하고 결과를 확인하세요. 주사위 굴림, 성공 여부, 사건 발생은 시스템이 자동으로 처리합니다. 규칙을 외우거나 직접 계산할 필요가 없습니다.</p>
+  <div class="sub">CoC풍 D100 하우스룰: 일반 성공 / 어려운 성공(능력치 절반) / 극단적 성공(능력치 1/5) / 대실패. 체력·정신력·부상·감염·허기·갈증이 별도로 관리됩니다.</div>
  </div>
- <div class="activity-tabs" style="display:none"></div>
- <div class="activity-panel" id="activity-map"></div><div class="activity-panel" id="activity-actions"></div><div class="activity-panel" id="activity-rp"></div><div class="activity-panel" id="activity-trpg"></div><div class="activity-panel" id="activity-items"></div><div class="activity-panel" id="activity-save"></div>
+ <div class="grid2">
+  <div class="card"><div class="card-head">생존자 1 능력치 <small>기본값 · 수정 가능</small></div><div class="card-body" id="statsA"></div></div>
+  <div class="card"><div class="card-head">생존자 2 능력치 <small>기본값 · 수정 가능</small></div><div class="card-body" id="statsB"></div></div>
+ </div>
+ <div class="card"><div class="card-head">행동 선택 <small>행동하면 자동 판정</small></div><div class="card-body">
+  <div class="row" style="margin-bottom:10px"><label class="notice" for="actorSelect">행동할 생존자</label><select class="field" id="actorSelect" style="max-width:190px"><option value="a">생존자 1</option><option value="b">생존자 2</option></select></div>
+  <div class="grid2">
+   <button class="btn" data-action="관찰" data-stat="관찰">주변을 살핀다 · 관찰</button>
+   <button class="btn" data-action="은밀하게 이동" data-stat="민첩">들키지 않고 이동한다 · 민첩</button>
+   <button class="btn" data-action="문이나 장애물을 강제로 연다" data-stat="힘">문을 강제로 연다 · 힘</button>
+   <button class="btn" data-action="응급처치를 시도한다" data-stat="지능">응급처치를 한다 · 지능</button>
+   <button class="btn" data-action="주변 물자를 수색한다" data-stat="운">물자를 수색한다 · 운</button>
+   <button class="btn secondary" id="freeAction">자유 행동 직접 입력</button>
+  </div>
+  <div id="freeActionBox" style="display:none;margin-top:10px"><input class="field" id="freeActionText" placeholder="예: 깨진 유리 조각으로 문틈을 확인한다"><div class="row" style="margin-top:7px"><select class="field" id="freeStat" style="max-width:150px"><option>관찰</option><option>민첩</option><option>힘</option><option>지능</option><option>운</option></select><button class="btn" id="freeRoll">행동 판정하기</button></div></div>
+ </div></div>
+ <div class="card"><div class="card-head">AI KP 설정 <small>OpenRouter 직접 연결</small></div><div class="card-body">
+  <label class="notice" for="aiKey">OpenRouter API 키</label><input class="field" id="aiKey" type="password" autocomplete="off" placeholder="sk-or-v1-..." style="margin:6px 0 10px">
+  <label class="notice" for="aiModel">OpenRouter 모델 ID</label><input class="field" id="aiModel" value="openai/gpt-4o-mini" style="margin:6px 0 10px">
+  <div class="row"><label class="notice" style="display:flex;align-items:center;gap:7px"><input type="checkbox" id="aiAuto"> 판정 후 AI KP 자동 진행</label><button class="btn secondary" id="saveAI">설정 저장</button><button class="btn" id="aiContinue">AI KP에게 진행 요청</button></div>
+  <div class="hint" id="aiStatus">OpenRouter 키를 입력하고 설정을 저장하세요.</div>
+  <label class="notice" for="aiPrompt" style="margin-top:12px">추가 지시 / 플레이어 행동 (선택)</label><textarea class="field" id="aiPrompt" rows="2" placeholder="예: 편의점 셔터를 조금 들어 올려 안쪽을 살핀다."></textarea>
+  <div class="hint">키는 이 브라우저에만 저장됩니다. 다른 사람도 AI를 사용하려면 각자 자신의 OpenRouter 키를 입력해야 합니다.</div>
+ </div></div>
+ <div class="card"><div class="card-head">시스템 진행자 <small>자동 판정 · 사건 · KPC</small></div><div class="card-body">
+  <div class="row" style="margin-bottom:10px"><button class="btn" id="randomEvent">🎲 무작위 사건 발생</button><button class="btn secondary" id="kpcButton">KPC / NPC 등장</button><button class="btn secondary" id="rollOnly">주사위만 굴리기</button></div>
+  <div id="trpgFeed" class="feed"><div class="feed-item"><div class="feed-time">시스템</div><div><p>아직 진행된 판정이 없습니다. 첫 행동을 선택해 보세요.</p><small>진행자는 두 플레이어의 행동에 따라 상황을 제시합니다.</small></div></div></div>
+ </div></div>
+ <div class="card"><div class="card-head">현재 진행 상황 <small>자동 누적</small></div><div class="card-body"><div class="stats">
+  <div class="stat"><label>진행 차례</label><strong id="turnNo">00</strong><em>행동 횟수</em></div>
+  <div class="stat"><label>발생 사건</label><strong id="eventNo">00</strong><em>무작위 사건</em></div>
+  <div class="stat"><label>생존 상태</label><strong style="color:var(--green)">유지</strong><em>상태 메뉴에서 관리</em></div>
+  <div class="stat"><label>진행자</label><strong style="font-size:15px">시스템</strong><em>자동 진행</em></div>
+ </div></div></div>
+ <p class="hint">※ 현재 TRPG 기능은 브라우저 안에서 작동하는 규칙 기반 시연판입니다. 실제 두 기기 동시 플레이와 AI가 상황에 맞춰 자유롭게 대화하는 KPC는 서버/AI 연결 단계에서 확장할 수 있습니다.</p>
+</div>
+<div class="activity-panel" id="activity-items">
+ <div class="content-head"><div><div class="eyebrow">소지품 기록</div><h2>소지품</h2></div><span class="tag">초기 상태 미정</span></div>
+ <div class="card"><div class="card-head">공동 물자 <small>직접 설정 가능</small></div><div class="card-body"><p class="notice">처음부터 정해진 아이템은 없습니다. 두 캐릭터가 가진 물건을 역극으로 정하고, 아래 기록란에 적어 두세요.</p><div id="itemList" class="inventory"></div><form id="itemForm" class="row" style="margin-top:12px"><input class="field" id="itemName" placeholder="물건 이름" required style="flex:1;min-width:120px"><input class="field" id="itemQty" placeholder="수량 / 메모" style="flex:1;min-width:100px"><button class="btn">추가 +</button></form></div></div>
+</div>
+<div class="activity-panel" id="activity-save">
+ <div class="content-head"><div><div class="eyebrow">기록 보관 / 백업</div><h2>저장 / 불러오기</h2></div><span class="tag">자동 저장 + 수동 백업</span></div>
+ <div class="card"><div class="card-head">자동 저장 상태 <small>브라우저 저장소</small></div><div class="card-body"><p class="notice" id="autosaveStatus">프로필, 역극, 소지품, 생존 기록, TRPG 진행은 변경할 때마다 이 브라우저에 자동 저장됩니다.</p><div class="row"><button class="btn" id="saveNow">지금 저장하기</button><button class="btn secondary" id="exportSave">저장 파일 다운로드 (.json)</button></div></div></div>
+ <div class="card"><div class="card-head">저장 파일 불러오기 <small>백업 복원</small></div><div class="card-body"><p class="notice">이전에 다운로드한 DEAD ZONE 저장 파일을 선택하면 현재 브라우저 기록을 해당 백업으로 교체합니다.</p><input class="field" type="file" id="importSaveFile" accept=".json,application/json"><button class="btn" id="importSave" style="margin-top:8px">선택한 저장 파일 불러오기</button></div></div>
+ <div class="card"><div class="card-head">주의</div><div class="card-body notice">현재 자동 저장은 로그인한 기기의 브라우저에 저장됩니다. 브라우저 데이터 삭제나 기기 변경에 대비해 JSON 백업을 다운로드하세요. 서로 다른 휴대폰 간 실시간 공유는 추후 서버 연결 후 작동합니다.</div></div>
+</div></div>
+
+
+
+
+
+
+
+
+
+
+
+
 <div class="page" id="page-survival">
  <div class="content-head"><div><div class="eyebrow">COC풍 생존 규칙</div><h2>생존 상태 / 부상</h2></div><span class="tag">위험도 실시간 관리</span></div>
  <div class="intro"><h3>살아남는 것 자체가 판정이다</h3><p>체력 0은 즉시 사망이 아니라 빈사 상태야. 동료가 응급처치를 하거나 다음 턴의 생명 판정에 성공해야 해. 중상, 출혈, 골절, 감염, 정신적 충격은 각각 별도로 누적돼.</p><div class="sub">D100 기반 CoC풍 하우스룰 · 캐릭터 시트는 이 기기에 자동 저장</div></div>
@@ -749,51 +796,6 @@ const threatNames=['일반 감염자','질주 감염자','군집 감염자','변
 
 function tick(){$('#clock').textContent=new Date().toLocaleTimeString('ko-KR',{hour12:false})}tick();setInterval(tick,1000);
 
-/* Black Survival field interface wiring */
-(()=>{
- const $id=id=>document.getElementById(id);
- const drawer=$id('dzDrawer'),mount=$id('dzDrawerContent');
- const source={
-  map:document.querySelector('#activity-map'),
-  actions:document.querySelector('#activity-actions'),
-  rp:document.querySelector('#activity-rp'),
-  trpg:document.querySelector('#activity-trpg'),
-  items:document.querySelector('#activity-items')
- };
- const titles={map:'주변 지역 / AREA',actions:'행동 선택 / ACTION',rp:'생존자 통신 / COMMS',trpg:'생존 상태 / STATUS & DICE',items:'소지품 / INVENTORY'};
- function open(key){
-  if(!source[key])return;
-  mount.innerHTML='';
-  const panel=source[key];
-  mount.appendChild(panel);
-  panel.classList.add('active-drawer');
-  $id('dzDrawerTitle').textContent=titles[key]||key;
-  drawer.classList.add('open');
-  drawer.scrollIntoView({behavior:'smooth',block:'nearest'});
- }
- document.querySelectorAll('[data-dz-open]').forEach(b=>b.addEventListener('click',()=>open(b.dataset.dzOpen)));
- drawer.querySelector('.dz-drawer-close').addEventListener('click',()=>{drawer.classList.remove('open');mount.innerHTML='';});
- const feed=$id('trpgFeed'); if(feed)$id('dzFeedMount').appendChild(feed);
- const a=$id('messages'); // conversation is opened from the comms drawer
- function syncHud(){
-  if($id('dzNameA'))$id('dzNameA').textContent=profiles.a.name||'HO1';
-  if($id('dzNameB'))$id('dzNameB').textContent=profiles.b.name||'HO2';
-  if($id('dzPlaceTitle'))$id('dzPlaceTitle').textContent=currentLocation||'안전지대';
-  if($id('dzClock'))$id('dzClock').textContent='DAY 01　·　'+(currentLocation||'안전지대');
- }
- syncHud();
- const observer=new MutationObserver(syncHud);
- if($id('profileNameA'))observer.observe($id('profileNameA'),{childList:true,subtree:true});
- document.querySelectorAll('[data-dz-action]').forEach(b=>b.addEventListener('click',()=>{
-  const words={'관찰':'주변을 자세히 관찰한다','물자 수색':'주변의 물자를 수색한다','은밀 이동':'소리를 죽이고 은밀하게 이동한다','주변 관찰':'주변의 소리를 듣고 위험을 파악한다'};
-  open('actions');
-  const target=[...document.querySelectorAll('#activity-actions .action-shortcut')].find(x=>x.textContent.trim().includes(b.dataset.dzAction)||x.dataset.action===words[b.dataset.dzAction]);
-  if(target)target.click();
- }));
- document.addEventListener('click',e=>{
-  const z=e.target.closest('.zone');
-  if(z){const name=z.dataset.zone;if($id('dzPlaceTitle'))$id('dzPlaceTitle').textContent=name;if($id('dzClock'))$id('dzClock').textContent='DAY 01　·　'+name;if($id('dzSceneText'))$id('dzSceneText').textContent=name+' 지역으로 이동했다. 주변을 살피며 위험 요소와 남아 있는 물자를 확인해야 한다.';}
- });
-})();
+(()=>{const byId=id=>document.getElementById(id),drawer=byId('dzDrawer'),mount=byId('dzDrawerContent');const panels={map:byId('activity-map'),actions:byId('activity-actions'),rp:byId('activity-rp'),trpg:byId('activity-trpg'),items:byId('activity-items')};const labels={map:'지역 탐색 / AREA',actions:'행동 선택 / ACTION',rp:'생존자 통신 / COMMS',trpg:'상태 및 주사위 / STATUS',items:'소지품 / INVENTORY'};function openPanel(k){if(!panels[k])return;mount.innerHTML='';mount.appendChild(panels[k]);byId('dzDrawerTitle').textContent=labels[k];drawer.classList.add('open')}document.querySelectorAll('[data-dz-open]').forEach(b=>b.addEventListener('click',()=>openPanel(b.dataset.dzOpen)));drawer.querySelector('.dz-drawer-close').addEventListener('click',()=>{drawer.classList.remove('open');mount.innerHTML=''});const feed=byId('trpgFeed');if(feed)byId('dzFeedMount').appendChild(feed);function sync(){byId('dzNameA').textContent=profiles.a.name||'HO1';byId('dzNameB').textContent=profiles.b.name||'HO2';byId('dzPlaceTitle').textContent=currentLocation||'안전지대';byId('dzClock').textContent='DAY 01　·　'+(currentLocation||'안전지대')}sync();document.querySelectorAll('[data-dz-action]').forEach(b=>b.addEventListener('click',()=>{openPanel('actions');const phrase={'주변 관찰':'주변 관찰','물자 수색':'물자 수색','은밀 이동':'은밀 이동','문 열기':'문이나 장애물을 힘으로 연다'}[b.dataset.dzAction];const target=[...document.querySelectorAll('#activity-actions .action-shortcut')].find(x=>x.textContent.includes(phrase)||x.dataset.action.includes(phrase));if(target)target.click()}));document.addEventListener('click',e=>{const z=e.target.closest('.zone');if(!z)return;currentLocation=z.dataset.zone;localStorage.setItem('dz2_current_location',currentLocation);sync();byId('dzSceneText').textContent=currentLocation+'에 도착했다. 주변을 살피자. 어디선가 희미한 소음이 들린다.'})})();
 </script>
 </body></html>
